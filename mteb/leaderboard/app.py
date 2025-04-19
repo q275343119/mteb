@@ -20,7 +20,7 @@ from mteb.abstasks.TaskMetadata import TASK_DOMAIN, TASK_TYPE
 from mteb.benchmarks.benchmarks import MTEB_multilingual
 from mteb.custom_validators import MODALITIES
 from mteb.languages import ISO_TO_LANGUAGE
-from mteb.leaderboard.benchmark_selector import BENCHMARK_ENTRIES, make_selector
+from mteb.leaderboard.benchmark_selector import BENCHMARK_ENTRIES, make_selector, _create_button
 from mteb.leaderboard.figures import performance_size_plot, radar_chart
 from mteb.leaderboard.table import create_tables
 
@@ -47,7 +47,6 @@ We thank [Google](https://cloud.google.com/), [ServiceNow](https://www.serviceno
 
 We also thank the following companies which provide API credits to evaluate their models: [OpenAI](https://openai.com/), [Voyage AI](https://www.voyageai.com/)
 """
-
 
 ALL_MODELS = {meta.name for meta in mteb.get_model_metas()}
 
@@ -102,7 +101,7 @@ def update_citation(benchmark_name: str) -> str:
 
 
 def update_description(
-    benchmark_name: str, languages: list[str], task_types: list[str], domains: list[str]
+        benchmark_name: str, languages: list[str], task_types: list[str], domains: list[str]
 ) -> str:
     benchmark = mteb.get_benchmark(benchmark_name)
     description = f"{benchmark.description}\n"
@@ -171,13 +170,13 @@ MIN_MODEL_SIZE, MAX_MODEL_SIZE = 0, 100_000
 
 
 def filter_models(
-    model_names: list[str],
-    task_select: list[str],
-    availability: bool | None,
-    compatibility: list[str],
-    instructions: bool | None,
-    model_size: tuple[int | None, int | None],
-    zero_shot_setting: Literal["only_zero_shot", "allow_all", "remove_unknown"],
+        model_names: list[str],
+        task_select: list[str],
+        availability: bool | None,
+        compatibility: list[str],
+        instructions: bool | None,
+        model_size: tuple[int | None, int | None],
+        zero_shot_setting: Literal["only_zero_shot", "allow_all", "remove_unknown"],
 ):
     lower, upper = model_size
     # Setting to None, when the user doesn't specify anything
@@ -285,178 +284,220 @@ def get_leaderboard_app() -> gr.Blocks:
     """
 
     with gr.Blocks(
-        fill_width=True,
-        theme=gr.themes.Soft(
-            font=[gr.themes.GoogleFont("Roboto Mono"), "Arial", "sans-serif"],
-        ),
-        head=head,
+            fill_width=True,
+            theme=gr.themes.Soft(
+                font=[gr.themes.GoogleFont("Roboto Mono"), "Arial", "sans-serif"],
+            ),
+            head=head,
     ) as demo:
+        iframe_container = gr.HTML(visible=False)
+        main_content = gr.Column(visible=True)
+
         with gr.Sidebar(
-            position="left",
-            label="Benchmark Selection and Customization",
-            visible=True,
-            width="25%",
+                position="left",
+                label="Benchmark Selection and Customization",
+                visible=True,
+                width="25%",
         ):
-            gr.Markdown("## Select Benchmark")
-            benchmark_select, column = make_selector(BENCHMARK_ENTRIES)
-        gr.Markdown(
-            """
-        ## Embedding Leaderboard
-
-        This leaderboard compares 100+ text and image embedding models across 1000+ languages. We refer to the publication of each selectable benchmark for details on metrics, languages, tasks, and task types. Anyone is welcome [to add a model](https://github.com/embeddings-benchmark/mteb/blob/main/docs/adding_a_model.md), [add benchmarks](https://github.com/embeddings-benchmark/mteb/blob/main/docs/adding_a_benchmark.md), [help us improve zero-shot annotations](https://github.com/embeddings-benchmark/mteb/blob/06489abca007261c7e6b11f36d4844c5ed5efdcb/mteb/models/bge_models.py#L91) or [propose other changes to the leaderboard](https://github.com/embeddings-benchmark/mteb/tree/main/mteb/leaderboard) 🤗 Also, check out [MTEB Arena](https://huggingface.co/spaces/mteb/arena) ⚔️
-        """
-        )
-        gr.Markdown(
-            lambda name: f"<center> <h2> <b> {name} </b> </h2> </center><br>",
-            inputs=benchmark_select,
-        )
-
-        scores = gr.State(default_scores)
-        models = gr.State(filtered_models)
-        with gr.Row():
-            with gr.Column(scale=1):
-                description = gr.Markdown(  # noqa: F841
-                    update_description,
-                    inputs=[benchmark_select, lang_select, type_select, domain_select],
+            with gr.Accordion(label="mteb-leaderboard".upper(), open=False):
+                gr.Markdown("## Select Benchmark")
+                benchmark_select, column = make_selector(BENCHMARK_ENTRIES)
+                
+                def on_benchmark_change():
+                    return {
+                        main_content: gr.Column(visible=True),
+                        iframe_container: gr.HTML(visible=False)
+                    }
+                
+                benchmark_select.change(
+                    fn=on_benchmark_change,
+                    inputs=[],
+                    outputs=[main_content, iframe_container]
                 )
-                with gr.Accordion("Cite this benchmark:", open=False):
-                    citation = gr.Markdown(update_citation, inputs=[benchmark_select])  # noqa: F841
-                with gr.Accordion("Share this benchmark:", open=False):
-                    gr.Markdown(produce_benchmark_link, inputs=[benchmark_select])
-            with gr.Column(scale=2):
-                with gr.Tab("Performance per Model Size"):
-                    plot = gr.Plot(performance_size_plot, inputs=[summary_table])  # noqa: F841
-                    gr.Markdown(
-                        "*We only display models that have been run on all tasks in the benchmark*"
-                    )
-                with gr.Tab("Performance per Task Type (Radar Chart)"):
-                    radar_plot = gr.Plot(radar_chart, inputs=[summary_table])  # noqa: F841
-                    gr.Markdown(
-                        "*We only display models that have been run on all task types in the benchmark*"
-                    )
+                
+            with gr.Column() as column:
+                button = gr.Button(
+                    "Retrieval Embedding Benchmark",
+                    variant="secondary",
+                    elem_classes="text-white",
+                )
 
-        with gr.Accordion("Customize this Benchmark", open=False):
-            with gr.Column():
-                with gr.Row():
-                    type_select.render()
-                with gr.Row():
-                    domain_select.render()
-                with gr.Row():
-                    modality_select.render()
-                with gr.Row(elem_classes="overflow-y-scroll max-h-80"):
-                    lang_select.render()
-                with gr.Row(elem_classes="overflow-y-scroll max-h-80"):
-                    task_select.render()
+                def on_button_click():
+                    return {
+                        iframe_container: gr.HTML("""
+                            <iframe src="https://embedding-benchmark-rteb.hf.space/"
+                            style="width: 100%; height: 90vh; border: none;" scrolling="auto">
+                            </iframe>
+                        """, visible=True),
+                        main_content: gr.Column(visible=False)
+                    }
 
-        with gr.Accordion("Advanced Model Filters", open=False):
-            with gr.Group():
-                with gr.Row(elem_classes=""):
-                    with gr.Column():
-                        compatibility = gr.CheckboxGroup(
-                            [
-                                (
-                                    "Should be sentence-transformers compatible",
-                                    "Sentence Transformers",
-                                )
-                            ],
-                            value=[],
-                            label="Compatibility",
-                            interactive=True,
-                        )
-                        availability = gr.Radio(
-                            [
-                                ("Only Open", True),
-                                ("Only Proprietary", False),
-                                ("Both", None),
-                            ],
-                            value=None,
-                            label="Availability",
-                            interactive=True,
-                        )
-                        instructions = gr.Radio(
-                            [
-                                ("Only Instruction-tuned", True),
-                                ("Only non-instruction", False),
-                                ("Both", None),
-                            ],
-                            value=None,
-                            label="Instructions",
-                            interactive=True,
-                        )
-                    with gr.Column():
-                        zero_shot = gr.Radio(
-                            [
-                                (
-                                    "Only Zero-shot",
-                                    "only_zero_shot",
-                                ),
-                                ("Remove Unknown", "remove_unknown"),
-                                ("Allow All", "allow_all"),
-                            ],
-                            value="allow_all",
-                            label="Zero-shot",
-                            interactive=True,
-                        )
-                        model_size = RangeSlider(
-                            minimum=MIN_MODEL_SIZE,
-                            maximum=MAX_MODEL_SIZE,
-                            value=(MIN_MODEL_SIZE, MAX_MODEL_SIZE),
-                            label="Model Size (#M Parameters)",
-                        )
+                button.click(
+                    fn=on_button_click,
+                    inputs=[],
+                    outputs=[iframe_container,main_content]
+                )
 
-        with gr.Tab("Summary"):
-            summary_table.render()
-            download_summary = gr.DownloadButton("Download Table")
-            download_summary.click(
-                download_table, inputs=[summary_table], outputs=[download_summary]
+        with main_content:
+            gr.Markdown(
+                """
+            ## Embedding Leaderboard
+    
+            This leaderboard compares 100+ text and image embedding models across 1000+ languages. We refer to the publication of each selectable benchmark for details on metrics, languages, tasks, and task types. Anyone is welcome [to add a model](https://github.com/embeddings-benchmark/mteb/blob/main/docs/adding_a_model.md), [add benchmarks](https://github.com/embeddings-benchmark/mteb/blob/main/docs/adding_a_benchmark.md), [help us improve zero-shot annotations](https://github.com/embeddings-benchmark/mteb/blob/06489abca007261c7e6b11f36d4844c5ed5efdcb/mteb/models/bge_models.py#L91) or [propose other changes to the leaderboard](https://github.com/embeddings-benchmark/mteb/tree/main/mteb/leaderboard) 🤗 Also, check out [MTEB Arena](https://huggingface.co/spaces/mteb/arena) ⚔️
+            """
+            )
+            gr.Markdown(
+                lambda name: f"<center> <h2> <b> {name} </b> </h2> </center><br>",
+                inputs=benchmark_select,
             )
 
-            with gr.Accordion(
-                "What do aggregate measures (Rank(Borda), Mean(Task), etc.) mean?",
-                open=False,
-            ):
-                gr.Markdown(
-                    """
+            scores = gr.State(default_scores)
+            models = gr.State(filtered_models)
+            with gr.Row():
+                with gr.Column(scale=1):
+                    description = gr.Markdown(  # noqa: F841
+                        update_description,
+                        inputs=[benchmark_select, lang_select, type_select, domain_select],
+                    )
+                    with gr.Accordion("Cite this benchmark:", open=False):
+                        citation = gr.Markdown(update_citation, inputs=[benchmark_select])  # noqa: F841
+                    with gr.Accordion("Share this benchmark:", open=False):
+                        gr.Markdown(produce_benchmark_link, inputs=[benchmark_select])
+                with gr.Column(scale=2):
+                    with gr.Tab("Performance per Model Size"):
+                        plot = gr.Plot(performance_size_plot, inputs=[summary_table])  # noqa: F841
+                        gr.Markdown(
+                            "*We only display models that have been run on all tasks in the benchmark*"
+                        )
+                    with gr.Tab("Performance per Task Type (Radar Chart)"):
+                        radar_plot = gr.Plot(radar_chart, inputs=[summary_table])  # noqa: F841
+                        gr.Markdown(
+                            "*We only display models that have been run on all task types in the benchmark*"
+                        )
+
+            with gr.Accordion("Customize this Benchmark", open=False):
+                with gr.Column():
+                    with gr.Row():
+                        type_select.render()
+                    with gr.Row():
+                        domain_select.render()
+                    with gr.Row():
+                        modality_select.render()
+                    with gr.Row(elem_classes="overflow-y-scroll max-h-80"):
+                        lang_select.render()
+                    with gr.Row(elem_classes="overflow-y-scroll max-h-80"):
+                        task_select.render()
+
+            with gr.Accordion("Advanced Model Filters", open=False):
+                with gr.Group():
+                    with gr.Row(elem_classes=""):
+                        with gr.Column():
+                            compatibility = gr.CheckboxGroup(
+                                [
+                                    (
+                                        "Should be sentence-transformers compatible",
+                                        "Sentence Transformers",
+                                    )
+                                ],
+                                value=[],
+                                label="Compatibility",
+                                interactive=True,
+                            )
+                            availability = gr.Radio(
+                                [
+                                    ("Only Open", True),
+                                    ("Only Proprietary", False),
+                                    ("Both", None),
+                                ],
+                                value=None,
+                                label="Availability",
+                                interactive=True,
+                            )
+                            instructions = gr.Radio(
+                                [
+                                    ("Only Instruction-tuned", True),
+                                    ("Only non-instruction", False),
+                                    ("Both", None),
+                                ],
+                                value=None,
+                                label="Instructions",
+                                interactive=True,
+                            )
+                        with gr.Column():
+                            zero_shot = gr.Radio(
+                                [
+                                    (
+                                        "Only Zero-shot",
+                                        "only_zero_shot",
+                                    ),
+                                    ("Remove Unknown", "remove_unknown"),
+                                    ("Allow All", "allow_all"),
+                                ],
+                                value="allow_all",
+                                label="Zero-shot",
+                                interactive=True,
+                            )
+                            model_size = RangeSlider(
+                                minimum=MIN_MODEL_SIZE,
+                                maximum=MAX_MODEL_SIZE,
+                                value=(MIN_MODEL_SIZE, MAX_MODEL_SIZE),
+                                label="Model Size (#M Parameters)",
+                            )
+
+
+            with gr.Tab("Summary"):
+                summary_table.render()
+                download_summary = gr.DownloadButton("Download Table")
+                download_summary.click(
+                    download_table, inputs=[summary_table], outputs=[download_summary]
+                )
+
+                with gr.Accordion(
+                        "What do aggregate measures (Rank(Borda), Mean(Task), etc.) mean?",
+                        open=False,
+                ):
+                    gr.Markdown(
+                        """
         **Rank(borda)** is computed based on the [borda count](https://en.wikipedia.org/wiki/Borda_count), where each task is treated as a preference voter, which gives votes on the models per their relative performance on the task. The best model obtains the highest number of votes. The model with the highest number of votes across tasks obtains the highest rank. The Borda rank tends to prefer models that perform well broadly across tasks. However, given that it is a rank it can be unclear if the two models perform similarly.
 
         **Mean(Task)**: This is a naïve average computed across all the tasks within the benchmark. This score is simple to understand and is continuous as opposed to the Borda rank. However, the mean can overvalue tasks with higher variance in its scores.
 
         **Mean(TaskType)**: This is a weighted average across different task categories, such as classification or retrieval. It is computed by first computing the average by task category and then computing the average on each category. Similar to the Mean(Task) this measure is continuous and tends to overvalue tasks with higher variance. This score also prefers models that perform well across all task categories.
-                """
-                )
-            with gr.Accordion(
-                "What does zero-shot mean?",
-                open=False,
-            ):
-                gr.Markdown(
-                    """
+                        """
+                    )
+                with gr.Accordion(
+                        "What does zero-shot mean?",
+                        open=False,
+                ):
+                    gr.Markdown(
+                        """
     A model is considered zero-shot if it is not trained on any splits of the datasets used to derive the tasks.
     The percentages in the table indicate what portion of the benchmark can be considered out-of-distribution for a given model.
     100% means the model has not been trained on any of the datasets in a given benchmark, and therefore the benchmark score can be interpreted as the model's overall generalization performance,
     while 50% means the model has been finetuned on half of the tasks in the benchmark, thereby indicating that the benchmark results should be interpreted with a pinch of salt.
-    This definition creates a few edge cases. For instance, multiple models are typically trained on Wikipedia title and body pairs, but we do not define this as leakage on, e.g., “WikipediaRetrievalMultilingual” and “WikiClusteringP2P” as these datasets are not based on title-body pairs.
+    This definition creates a few edge cases. For instance, multiple models are typically trained on Wikipedia title and body pairs, but we do not define this as leakage on, e.g., "WikipediaRetrievalMultilingual" and "WikiClusteringP2P" as these datasets are not based on title-body pairs.
     Distilled, further fine-tunes, or in other ways, derivative models inherit the datasets of their parent models.
     Based on community feedback and research findings, this definition may change in the future. Please open a PR if you notice any mistakes or want to help us refine annotations, see [GitHub](https://github.com/embeddings-benchmark/mteb/blob/06489abca007261c7e6b11f36d4844c5ed5efdcb/mteb/models/bge_models.py#L91).
-                """
-                )
-            with gr.Accordion(
-                "What do the other columns mean?",
-                open=False,
-            ):
-                gr.Markdown(
-                    """
+                        """
+                    )
+                with gr.Accordion(
+                        "What do the other columns mean?",
+                        open=False,
+                ):
+                    gr.Markdown(
+                        """
     - **Number of Parameters**: This is the total number of parameters in the model including embedding parameters. A higher value means the model requires more CPU/GPU memory to run; thus, less is generally desirable.
     - **Embedding Dimension**: This is the vector dimension of the embeddings that the model produces. When saving embeddings to disk, a higher dimension will require more space, thus less is usually desirable.
     - **Max tokens**: This refers to how many tokens (=word pieces) the model can process. Generally, a larger value is desirable.
     - **Zero-shot**: This indicates if the model is zero-shot on the benchmark. For more information on zero-shot see the info box above.
-                """
-                )
-            with gr.Accordion(
-                "Why is a model missing or not showing up?",
-                open=False,
-            ):
-                gr.Markdown(
-                    """
+                        """
+                    )
+                with gr.Accordion(
+                        "Why is a model missing or not showing up?",
+                        open=False,
+                ):
+                    gr.Markdown(
+                        """
     Possible reasons why a model may not show up in the leaderboard:
 
     - **Filter Setting**: It is being filtered out with your current filter. By default, we do not show models that are not zero-shot on the benchmark.
@@ -467,16 +508,16 @@ def get_leaderboard_app() -> gr.Blocks:
     - **Missing Metadata**: Currently, we only show models for which we have metadata in [mteb](https://github.com/embeddings-benchmark/mteb).
     You can follow this guide on how to add a [model](https://github.com/embeddings-benchmark/mteb/blob/main/docs/adding_a_model.md) and
     see existing implementations [here](https://github.com/embeddings-benchmark/mteb/tree/main/mteb/models).
-                """
+                        """
+                    )
+            with gr.Tab("Performance per task"):
+                per_task_table.render()
+                download_per_task = gr.DownloadButton("Download Table")
+                download_per_task.click(
+                    download_table, inputs=[per_task_table], outputs=[download_per_task]
                 )
-        with gr.Tab("Performance per task"):
-            per_task_table.render()
-            download_per_task = gr.DownloadButton("Download Table")
-            download_per_task.click(
-                download_table, inputs=[per_task_table], outputs=[download_per_task]
-            )
-        with gr.Tab("Task information"):
-            task_info_table = gr.DataFrame(update_task_info, inputs=[task_select])  # noqa: F841
+            with gr.Tab("Task information"):
+                task_info_table = gr.DataFrame(update_task_info, inputs=[task_select])
 
         # This sets the benchmark from the URL query parameters
         demo.load(set_benchmark_on_load, inputs=[], outputs=[benchmark_select])
@@ -560,21 +601,21 @@ def get_leaderboard_app() -> gr.Blocks:
         @cachetools.cached(
             cache={},
             key=lambda benchmark_name,
-            type_select,
-            domain_select,
-            lang_select,
-            modality_select: hash(
+                       type_select,
+                       domain_select,
+                       lang_select,
+                       modality_select: hash(
                 (
-                    hash(benchmark_name),
-                    hash(tuple(type_select)),
-                    hash(tuple(domain_select)),
-                    hash(tuple(lang_select)),
-                    hash(tuple(modality_select)),
+                        hash(benchmark_name),
+                        hash(tuple(type_select)),
+                        hash(tuple(domain_select)),
+                        hash(tuple(lang_select)),
+                        hash(tuple(modality_select)),
                 )
             ),
         )
         def update_task_list(
-            benchmark_name, type_select, domain_select, lang_select, modality_select
+                benchmark_name, type_select, domain_select, lang_select, modality_select
         ):
             if not len(lang_select):
                 return []
@@ -584,15 +625,15 @@ def get_leaderboard_app() -> gr.Blocks:
                 if task.metadata.type not in type_select:
                     continue
                 if task.metadata.domains is not None and not (
-                    set(task.metadata.domains) & set(domain_select)
+                        set(task.metadata.domains) & set(domain_select)
                 ):
                     continue
                 if task.languages is not None and not (
-                    set(task.languages) & set(lang_select)
+                        set(task.languages) & set(lang_select)
                 ):
                     continue
                 if task.metadata.modalities and not (
-                    set(task.metadata.modalities) & set(modality_select)
+                        set(task.metadata.modalities) & set(modality_select)
                 ):
                     continue
                 tasks_to_keep.append(task.metadata.name)
@@ -648,31 +689,31 @@ def get_leaderboard_app() -> gr.Blocks:
         @cachetools.cached(
             cache={},
             key=lambda scores,
-            tasks,
-            availability,
-            compatibility,
-            instructions,
-            model_size,
-            zero_shot: hash(
+                       tasks,
+                       availability,
+                       compatibility,
+                       instructions,
+                       model_size,
+                       zero_shot: hash(
                 (
-                    id(scores),
-                    hash(tuple(tasks)),
-                    hash(availability),
-                    hash(tuple(compatibility)),
-                    hash(instructions),
-                    hash(model_size),
-                    hash(zero_shot),
+                        id(scores),
+                        hash(tuple(tasks)),
+                        hash(availability),
+                        hash(tuple(compatibility)),
+                        hash(instructions),
+                        hash(model_size),
+                        hash(zero_shot),
                 )
             ),
         )
         def update_models(
-            scores: list[dict],
-            tasks: list[str],
-            availability: bool | None,
-            compatibility: list[str],
-            instructions: bool | None,
-            model_size: tuple[int, int],
-            zero_shot: Literal["allow_all", "remove_unknown", "only_zero_shot"],
+                scores: list[dict],
+                tasks: list[str],
+                availability: bool | None,
+                compatibility: list[str],
+                instructions: bool | None,
+                model_size: tuple[int, int],
+                zero_shot: Literal["allow_all", "remove_unknown", "only_zero_shot"],
         ):
             start_time = time.time()
             model_names = list({entry["model_name"] for entry in scores})
@@ -788,18 +829,18 @@ def get_leaderboard_app() -> gr.Blocks:
             cache={},
             key=lambda scores, tasks, models_to_keep, benchmark_name: hash(
                 (
-                    id(scores),
-                    hash(tuple(tasks)),
-                    id(models_to_keep),
-                    hash(benchmark_name),
+                        id(scores),
+                        hash(tuple(tasks)),
+                        id(models_to_keep),
+                        hash(benchmark_name),
                 )
             ),
         )
         def update_tables(
-            scores,
-            tasks,
-            models_to_keep,
-            benchmark_name: str,
+                scores,
+                tasks,
+                models_to_keep,
+                benchmark_name: str,
         ):
             start_time = time.time()
             tasks = set(tasks)
@@ -811,7 +852,7 @@ def get_leaderboard_app() -> gr.Blocks:
                     if entry["task_name"] not in tasks:
                         continue
                     if (models_to_keep is not None) and (
-                        entry["model_name"] not in models_to_keep
+                            entry["model_name"] not in models_to_keep
                     ):
                         continue
                     filtered_scores.append(entry)
