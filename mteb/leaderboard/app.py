@@ -295,12 +295,16 @@ def get_leaderboard_app() -> gr.Blocks:
         .gradio-container > div > div {
             gap: 0 !important;
         }
-        /* 确保sidebar紧贴左侧 */
+        /* 确保sidebar可见且正确定位 */
         .gradio-container [class*="left-sidebar"] {
             margin-left: 0 !important;
             padding-left: 1rem !important;
-            min-width: auto !important;
+            min-width: 300px !important;
             width: 25% !important;
+            display: block !important;
+            position: relative !important;
+            visibility: visible !important;
+            opacity: 1 !important;
         }
         /* 调整主内容区域 */
         .gradio-container [class*="main-content"] {
@@ -311,6 +315,12 @@ def get_leaderboard_app() -> gr.Blocks:
         /* 移除不必要的外边距 */
         .gradio-container [class*="block"] {
             margin: 0 !important;
+        }
+        /* 确保sidebar内容正确显示 */
+        .gradio-container [class*="left-sidebar"] > div {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
         }
       </style>
     """
