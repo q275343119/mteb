@@ -281,6 +281,38 @@ def get_leaderboard_app() -> gr.Blocks:
 
     head = """
       <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+      <style>
+        .sidebar-content{
+            margin-top:35px
+        }
+        /* 修复Hugging Face环境中的布局问题 */
+        .gradio-container {
+            max-width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        /* 修复sidebar的宽度和位置 */
+        .gradio-container > div > div {
+            gap: 0 !important;
+        }
+        /* 确保sidebar紧贴左侧 */
+        .gradio-container [class*="left-sidebar"] {
+            margin-left: 0 !important;
+            padding-left: 1rem !important;
+            min-width: auto !important;
+            width: 25% !important;
+        }
+        /* 调整主内容区域 */
+        .gradio-container [class*="main-content"] {
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+            width: 75% !important;
+        }
+        /* 移除不必要的外边距 */
+        .gradio-container [class*="block"] {
+            margin: 0 !important;
+        }
+      </style>
     """
 
     with gr.Blocks(
@@ -299,7 +331,7 @@ def get_leaderboard_app() -> gr.Blocks:
                 visible=True,
                 width="25%",
         ):
-            with gr.Accordion(label="mteb-leaderboard".upper(), open=False):
+            with gr.Accordion(label="mteb-leaderboard".upper(), open=False, ):
                 gr.Markdown("## Select Benchmark")
                 benchmark_select, column = make_selector(BENCHMARK_ENTRIES)
                 
