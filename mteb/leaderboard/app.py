@@ -285,43 +285,11 @@ def get_leaderboard_app() -> gr.Blocks:
         .sidebar-content{
             margin-top:35px
         }
-        /* 修复Hugging Face环境中的布局问题 */
-        .gradio-container {
-            max-width: 100% !important;
-            padding: 0 !important;
-            margin: 0 !important;
+
+        .sidebar-parent:has(.sidebar.open:not(.right)) {
+            padding-left: 280px;
         }
-        /* 修复sidebar的宽度和位置 */
-        .gradio-container > div > div {
-            gap: 0 !important;
-        }
-        /* 确保sidebar可见且正确定位 */
-        .gradio-container [class*="left-sidebar"] {
-            margin-left: 0 !important;
-            padding-left: 1rem !important;
-            min-width: 300px !important;
-            width: 25% !important;
-            display: block !important;
-            position: relative !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-        }
-        /* 调整主内容区域 */
-        .gradio-container [class*="main-content"] {
-            padding-left: 1rem !important;
-            padding-right: 1rem !important;
-            width: 75% !important;
-        }
-        /* 移除不必要的外边距 */
-        .gradio-container [class*="block"] {
-            margin: 0 !important;
-        }
-        /* 确保sidebar内容正确显示 */
-        .gradio-container [class*="left-sidebar"] > div {
-            display: block !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-        }
+     
       </style>
     """
 
@@ -344,19 +312,19 @@ def get_leaderboard_app() -> gr.Blocks:
             with gr.Accordion(label="mteb-leaderboard".upper(), open=False, ):
                 gr.Markdown("## Select Benchmark")
                 benchmark_select, column = make_selector(BENCHMARK_ENTRIES)
-                
+
                 def on_benchmark_change():
                     return {
                         main_content: gr.Column(visible=True),
                         iframe_container: gr.HTML(visible=False)
                     }
-                
+
                 benchmark_select.change(
                     fn=on_benchmark_change,
                     inputs=[],
                     outputs=[main_content, iframe_container]
                 )
-                
+
             with gr.Column() as column:
                 button = gr.Button(
                     "Retrieval Embedding Benchmark",
@@ -377,7 +345,7 @@ def get_leaderboard_app() -> gr.Blocks:
                 button.click(
                     fn=on_button_click,
                     inputs=[],
-                    outputs=[iframe_container,main_content]
+                    outputs=[iframe_container, main_content]
                 )
 
         with main_content:
@@ -485,7 +453,6 @@ def get_leaderboard_app() -> gr.Blocks:
                                 value=(MIN_MODEL_SIZE, MAX_MODEL_SIZE),
                                 label="Model Size (#M Parameters)",
                             )
-
 
             with gr.Tab("Summary"):
                 summary_table.render()
