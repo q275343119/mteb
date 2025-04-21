@@ -5,7 +5,9 @@
 # @Description:
 
 import gradio as gr
-def multi_app()-> gr.Blocks:
+
+
+def multi_app() -> gr.Blocks:
     with gr.Blocks(
             fill_width=True,
             theme=gr.themes.Soft(
@@ -55,6 +57,7 @@ def multi_app()-> gr.Blocks:
 
     return demo
 
+
 if __name__ == '__main__':
     app = multi_app()
-    app.launch(server_name="127.0.0.1", server_port=7860)
+    app.launch(server_name="0.0.0.0", server_port=7860)
