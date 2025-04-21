@@ -27,7 +27,7 @@ def multi_app()-> gr.Blocks:
 
         # 朋友项目部分
         main_container_html = """
-         <iframe src="http://127.0.0.1:7861/"
+         <iframe src="/sub/"
                        style="width: 100%; height: 90vh; border: none;" scrolling="auto">
                </iframe>
         """
