@@ -48,7 +48,6 @@ We thank [Google](https://cloud.google.com/), [ServiceNow](https://www.serviceno
 We also thank the following companies which provide API credits to evaluate their models: [OpenAI](https://openai.com/), [Voyage AI](https://www.voyageai.com/)
 """
 
-
 ALL_MODELS = {meta.name for meta in mteb.get_model_metas()}
 
 
@@ -102,7 +101,7 @@ def update_citation(benchmark_name: str) -> str:
 
 
 def update_description(
-    benchmark_name: str, languages: list[str], task_types: list[str], domains: list[str]
+        benchmark_name: str, languages: list[str], task_types: list[str], domains: list[str]
 ) -> str:
     benchmark = mteb.get_benchmark(benchmark_name)
     description = f"{benchmark.description}\n"
@@ -171,13 +170,13 @@ MIN_MODEL_SIZE, MAX_MODEL_SIZE = 0, 100_000
 
 
 def filter_models(
-    model_names: list[str],
-    task_select: list[str],
-    availability: bool | None,
-    compatibility: list[str],
-    instructions: bool | None,
-    model_size: tuple[int | None, int | None],
-    zero_shot_setting: Literal["only_zero_shot", "allow_all", "remove_unknown"],
+        model_names: list[str],
+        task_select: list[str],
+        availability: bool | None,
+        compatibility: list[str],
+        instructions: bool | None,
+        model_size: tuple[int | None, int | None],
+        zero_shot_setting: Literal["only_zero_shot", "allow_all", "remove_unknown"],
 ):
     lower, upper = model_size
     # Setting to None, when the user doesn't specify anything
@@ -285,17 +284,17 @@ def get_leaderboard_app() -> gr.Blocks:
     """
 
     with gr.Blocks(
-        fill_width=True,
-        theme=gr.themes.Soft(
-            font=[gr.themes.GoogleFont("Roboto Mono"), "Arial", "sans-serif"],
-        ),
-        head=head,
+            fill_width=True,
+            theme=gr.themes.Soft(
+                font=[gr.themes.GoogleFont("Roboto Mono"), "Arial", "sans-serif"],
+            ),
+            head=head,
     ) as demo:
         with gr.Sidebar(
-            position="left",
-            label="Benchmark Selection and Customization",
-            visible=True,
-            width="25%",
+                position="left",
+                label="Benchmark Selection and Customization",
+                visible=True,
+                width="25%",
         ):
             gr.Markdown("## Select Benchmark")
             benchmark_select, column = make_selector(BENCHMARK_ENTRIES)
@@ -412,8 +411,8 @@ def get_leaderboard_app() -> gr.Blocks:
             )
 
             with gr.Accordion(
-                "What do aggregate measures (Rank(Borda), Mean(Task), etc.) mean?",
-                open=False,
+                    "What do aggregate measures (Rank(Borda), Mean(Task), etc.) mean?",
+                    open=False,
             ):
                 gr.Markdown(
                     """
@@ -425,8 +424,8 @@ def get_leaderboard_app() -> gr.Blocks:
                 """
                 )
             with gr.Accordion(
-                "What does zero-shot mean?",
-                open=False,
+                    "What does zero-shot mean?",
+                    open=False,
             ):
                 gr.Markdown(
                     """
@@ -440,8 +439,8 @@ def get_leaderboard_app() -> gr.Blocks:
                 """
                 )
             with gr.Accordion(
-                "What do the other columns mean?",
-                open=False,
+                    "What do the other columns mean?",
+                    open=False,
             ):
                 gr.Markdown(
                     """
@@ -452,8 +451,8 @@ def get_leaderboard_app() -> gr.Blocks:
                 """
                 )
             with gr.Accordion(
-                "Why is a model missing or not showing up?",
-                open=False,
+                    "Why is a model missing or not showing up?",
+                    open=False,
             ):
                 gr.Markdown(
                     """
@@ -560,21 +559,21 @@ def get_leaderboard_app() -> gr.Blocks:
         @cachetools.cached(
             cache={},
             key=lambda benchmark_name,
-            type_select,
-            domain_select,
-            lang_select,
-            modality_select: hash(
+                       type_select,
+                       domain_select,
+                       lang_select,
+                       modality_select: hash(
                 (
-                    hash(benchmark_name),
-                    hash(tuple(type_select)),
-                    hash(tuple(domain_select)),
-                    hash(tuple(lang_select)),
-                    hash(tuple(modality_select)),
+                        hash(benchmark_name),
+                        hash(tuple(type_select)),
+                        hash(tuple(domain_select)),
+                        hash(tuple(lang_select)),
+                        hash(tuple(modality_select)),
                 )
             ),
         )
         def update_task_list(
-            benchmark_name, type_select, domain_select, lang_select, modality_select
+                benchmark_name, type_select, domain_select, lang_select, modality_select
         ):
             if not len(lang_select):
                 return []
@@ -584,15 +583,15 @@ def get_leaderboard_app() -> gr.Blocks:
                 if task.metadata.type not in type_select:
                     continue
                 if task.metadata.domains is not None and not (
-                    set(task.metadata.domains) & set(domain_select)
+                        set(task.metadata.domains) & set(domain_select)
                 ):
                     continue
                 if task.languages is not None and not (
-                    set(task.languages) & set(lang_select)
+                        set(task.languages) & set(lang_select)
                 ):
                     continue
                 if task.metadata.modalities and not (
-                    set(task.metadata.modalities) & set(modality_select)
+                        set(task.metadata.modalities) & set(modality_select)
                 ):
                     continue
                 tasks_to_keep.append(task.metadata.name)
@@ -648,31 +647,31 @@ def get_leaderboard_app() -> gr.Blocks:
         @cachetools.cached(
             cache={},
             key=lambda scores,
-            tasks,
-            availability,
-            compatibility,
-            instructions,
-            model_size,
-            zero_shot: hash(
+                       tasks,
+                       availability,
+                       compatibility,
+                       instructions,
+                       model_size,
+                       zero_shot: hash(
                 (
-                    id(scores),
-                    hash(tuple(tasks)),
-                    hash(availability),
-                    hash(tuple(compatibility)),
-                    hash(instructions),
-                    hash(model_size),
-                    hash(zero_shot),
+                        id(scores),
+                        hash(tuple(tasks)),
+                        hash(availability),
+                        hash(tuple(compatibility)),
+                        hash(instructions),
+                        hash(model_size),
+                        hash(zero_shot),
                 )
             ),
         )
         def update_models(
-            scores: list[dict],
-            tasks: list[str],
-            availability: bool | None,
-            compatibility: list[str],
-            instructions: bool | None,
-            model_size: tuple[int, int],
-            zero_shot: Literal["allow_all", "remove_unknown", "only_zero_shot"],
+                scores: list[dict],
+                tasks: list[str],
+                availability: bool | None,
+                compatibility: list[str],
+                instructions: bool | None,
+                model_size: tuple[int, int],
+                zero_shot: Literal["allow_all", "remove_unknown", "only_zero_shot"],
         ):
             start_time = time.time()
             model_names = list({entry["model_name"] for entry in scores})
@@ -788,18 +787,18 @@ def get_leaderboard_app() -> gr.Blocks:
             cache={},
             key=lambda scores, tasks, models_to_keep, benchmark_name: hash(
                 (
-                    id(scores),
-                    hash(tuple(tasks)),
-                    id(models_to_keep),
-                    hash(benchmark_name),
+                        id(scores),
+                        hash(tuple(tasks)),
+                        id(models_to_keep),
+                        hash(benchmark_name),
                 )
             ),
         )
         def update_tables(
-            scores,
-            tasks,
-            models_to_keep,
-            benchmark_name: str,
+                scores,
+                tasks,
+                models_to_keep,
+                benchmark_name: str,
         ):
             start_time = time.time()
             tasks = set(tasks)
@@ -811,7 +810,7 @@ def get_leaderboard_app() -> gr.Blocks:
                     if entry["task_name"] not in tasks:
                         continue
                     if (models_to_keep is not None) and (
-                        entry["model_name"] not in models_to_keep
+                            entry["model_name"] not in models_to_keep
                     ):
                         continue
                     filtered_scores.append(entry)
@@ -891,4 +890,4 @@ if __name__ == "__main__":
     warnings.filterwarnings("ignore", message="Couldn't get scores for .* due to .*")
 
     app = get_leaderboard_app()
-    app.launch(server_name="0.0.0.0", server_port=8080)
+    app.launch(server_name="0.0.0.0", server_port=8080, root_path="/sub")
