@@ -286,9 +286,7 @@ def get_leaderboard_app() -> gr.Blocks:
             margin-top:35px
         }
 
-        .sidebar-parent:has(.sidebar.open:not(.right)) {
-            padding-left: 280px !important;
-        }
+
      
       </style>
     """
