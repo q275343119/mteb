@@ -53,7 +53,7 @@ def multi_app()-> gr.Blocks:
             outputs=[main_container, streamlit_iframe]
         )
 
-    return app
+    return demo
 
 if __name__ == '__main__':
     app = multi_app()
