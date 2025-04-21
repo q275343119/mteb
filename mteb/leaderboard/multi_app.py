@@ -14,7 +14,7 @@ def multi_app()-> gr.Blocks:
     ) as demo:
         # 左侧 Sidebar 导航栏
         with gr.Sidebar():
-            gr.Markdown("## 页面导航")
+            gr.Markdown("## Navigate")
             page_selector = gr.Radio(
                 ["mteb-leaderboard".upper(), "Retrieval Embedding Benchmark"],
                 label="Page Selector",
@@ -27,7 +27,7 @@ def multi_app()-> gr.Blocks:
 
         # 朋友项目部分
         main_container_html = """
-         <iframe src="http://127.0.0.1:7860/"
+         <iframe src="http://127.0.0.1:7861/"
                        style="width: 100%; height: 90vh; border: none;" scrolling="auto">
                </iframe>
         """
