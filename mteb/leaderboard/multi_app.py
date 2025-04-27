@@ -6,14 +6,23 @@
 
 import gradio as gr
 
+
 def multi_app_with_tabs() -> gr.Blocks:
     with gr.Blocks(
-        fill_width=True,
-        theme=gr.themes.Soft(
-            font=[gr.themes.GoogleFont("Roboto Mono"), "Arial", "sans-serif"],
-        ),
+            fill_width=True,
+            theme=gr.themes.Soft(
+                font=[gr.themes.GoogleFont("Roboto Mono"), "Arial", "sans-serif"],
+
+            ),
+            css="""
+            .my-tabs button {
+            font-size: 22px;
+            padding: 20px 28px;
+            font-weight: 600;
+        }
+            """
     ) as demo:
-        with gr.Tabs():
+        with gr.Tabs(elem_classes=["my-tabs"]):
             with gr.TabItem("MTEB-LEADERBOARD"):
                 gr.HTML("""
                     <iframe src="/sub/"
