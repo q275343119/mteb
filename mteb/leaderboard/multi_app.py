@@ -16,20 +16,23 @@ def multi_app_with_tabs() -> gr.Blocks:
             ),
             css="""
             .my-tabs button {
-            font-size: 22px;
-            padding: 20px 28px;
-            font-weight: 600;
-        }
+                font-size: 22px;
+                padding: 20px 28px;
+                font-weight: 600;
+            }
+            .tab-container.svelte-1tcem6n {
+                border-bottom: 2px double;
+            }   
             """
     ) as demo:
         with gr.Tabs(elem_classes=["my-tabs"]):
-            with gr.TabItem("MTEB-LEADERBOARD"):
+            with gr.TabItem("MTEB(community,customizable,comprehensive)"):
                 gr.HTML("""
                     <iframe src="/sub/"
                             style="width: 100%; height: 90vh; border: none;" scrolling="auto">
                     </iframe>
                 """)
-            with gr.TabItem("Retrieval Embedding Benchmark"):
+            with gr.TabItem("RTEB(curated,zero-shot retrieval)"):
                 gr.HTML("""
                     <iframe src="https://embedding-benchmark-rteb.hf.space/"
                             style="width: 100%; height: 90vh; border: none;" scrolling="auto">
