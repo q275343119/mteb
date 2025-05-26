@@ -19,7 +19,12 @@ import mteb
 from mteb.abstasks.TaskMetadata import TASK_DOMAIN, TASK_TYPE
 from mteb.benchmarks.benchmarks import MTEB_multilingual
 from mteb.custom_validators import MODALITIES
-from mteb.leaderboard.benchmark_selector import BENCHMARK_ENTRIES, make_selector
+from mteb.leaderboard.benchmark_selector import (
+    BENCHMARK_ENTRIES,
+    SECTION_ENTRIES,
+    make_selector,
+    make_section_selector,
+)
 from mteb.leaderboard.figures import performance_size_plot, radar_chart
 from mteb.leaderboard.table import create_tables
 from mteb.leaderboard.text_segments import ACKNOWLEDGEMENT, FAQ
@@ -278,6 +283,10 @@ def get_leaderboard_app() -> gr.Blocks:
         ):
             gr.Markdown("## Select Benchmark")
             benchmark_select, column = make_selector(BENCHMARK_ENTRIES)
+            
+            gr.Markdown("## Select Section")
+            section_select, section_column, section_iframe = make_section_selector(SECTION_ENTRIES)
+
         gr.Markdown(
             """
         ## Embedding Leaderboard
@@ -313,6 +322,8 @@ def get_leaderboard_app() -> gr.Blocks:
                     gr.Markdown(
                         "*We only display models that have been run on all task types in the benchmark*"
                     )
+                with gr.Tab("Section Content"):
+                    section_iframe  # 直接使用 iframe，不需要调用 render()
 
         with gr.Accordion("Customize this Benchmark", open=False):
             with gr.Column():

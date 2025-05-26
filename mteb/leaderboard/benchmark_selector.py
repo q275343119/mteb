@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 import gradio as gr
 
@@ -15,6 +16,43 @@ class MenuEntry:
     open: bool = False
     size: str = "sm"
 
+
+@dataclass
+class SectionEntry:
+    name: str | None
+    items: list[dict[str, Any]]  # 每个item包含name和url
+    open: bool = False
+    size: str = "sm"
+
+
+SECTION_ENTRIES = [
+    SectionEntry(
+        None,
+        [
+            {"name": "Section A", "url": "https://example.com/section-a"},
+            {"name": "Section B", "url": "https://example.com/section-b"},
+        ],
+        False,
+        size="md",
+    ),
+    SectionEntry(
+        "Category 1",
+        [
+            {"name": "Item 1", "url": "https://example.com/item-1"},
+            {"name": "Item 2", "url": "https://example.com/item-2"},
+            {"name": "Item 3", "url": "https://example.com/item-3"},
+        ],
+        True,
+    ),
+    SectionEntry(
+        "Category 2",
+        [
+            {"name": "Item 4", "url": "https://example.com/item-4"},
+            {"name": "Item 5", "url": "https://example.com/item-5"},
+            {"name": "Item 6", "url": "https://example.com/item-6"},
+        ],
+    ),
+]
 
 BENCHMARK_ENTRIES = [
     MenuEntry(
@@ -36,17 +74,6 @@ BENCHMARK_ENTRIES = [
         True,
     ),
     MenuEntry(
-        "Regional",
-        mteb.get_benchmarks(
-            [
-                "MTEB(Europe, v1)",
-                "MTEB(Indic, v1)",
-                "MTEB(Scandinavian, v1)",
-            ]
-        ),
-        True,
-    ),
-    MenuEntry(
         "Domain-Specific",
         mteb.get_benchmarks(
             [
@@ -54,6 +81,16 @@ BENCHMARK_ENTRIES = [
                 "MTEB(Law, v1)",
                 "MTEB(Medical, v1)",
                 "ChemTEB",
+                "MTEB(Europe, v1)",
+                "MTEB(Indic, v1)",
+                "MTEB(Scandinavian, v1)",
+                "MTEB(cmn, v1)",
+                "MTEB(deu, v1)",
+                "MTEB(fra, v1)",
+                "MTEB(jpn, v1)",
+                "MTEB(kor, v1)",
+                "MTEB(pol, v1)",
+                "MTEB(rus, v1)",
             ]
         ),
     ),
@@ -161,6 +198,63 @@ def make_selector(
                         i += 1
 
     return state, column
+
+
+def _create_section_button(
+    i: int,
+    item: dict[str, Any],
+    state: gr.State,
+    iframe: gr.HTML,
+    **kwargs,
+):
+    button = gr.Button(
+        item["name"],
+        variant="secondary" if i != 0 else "primary",
+        key=f"{i}_button_{item['name']}",
+        elem_classes="text-white",
+        **kwargs,
+    )
+
+    def _update_variant(state: str, name: str) -> gr.Button:
+        if state == name:
+            return gr.Button(variant="primary")
+        else:
+            return gr.Button(variant="secondary")
+
+    def _update_value(name: str) -> tuple[str, str]:
+        return name, f'<iframe src="{item["url"]}" width="100%" height="600px" frameborder="0"></iframe>'
+
+    state.change(_update_variant, inputs=[state, button], outputs=[button])
+    button.click(_update_value, inputs=[button], outputs=[state, iframe])
+    return button
+
+
+def make_section_selector(
+    entries: list[SectionEntry],
+) -> tuple[gr.State, gr.Column, gr.HTML]:
+    if not entries:
+        raise ValueError("No entries were specified, can't build selector.")
+    
+    with gr.Column() as column:
+        state = gr.State(entries[0].items[0]["name"])
+        iframe = gr.HTML(value=f'<iframe src="{entries[0].items[0]["url"]}" width="100%" height="600px" frameborder="0"></iframe>')
+        i = 0
+        for entry in entries:
+            if entry.name is None:
+                for item in entry.items:
+                    button = _create_section_button(
+                        i, item, state, iframe, size=entry.size
+                    )
+                    i += 1
+            if entry.name is not None:
+                with gr.Accordion(entry.name, open=entry.open):
+                    for item in entry.items:
+                        button = _create_section_button(  # noqa: F841
+                            i, item, state, iframe, size=entry.size
+                        )
+                        i += 1
+
+    return state, column, iframe
 
 
 if __name__ == "__main__":
