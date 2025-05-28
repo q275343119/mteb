@@ -287,493 +287,518 @@ def get_leaderboard_app() -> gr.Blocks:
             gr.Markdown("## Select Section")
             section_select, section_column, section_iframe = make_section_selector(SECTION_ENTRIES)
 
-        gr.Markdown(
+        # 创建一个 iframe 组件
+        iframe = gr.HTML(visible=False)
+
+        # 创建一个容器来包装 benchmark 内容
+        with gr.Column(visible=True) as benchmark_content:
+            gr.Markdown(
+                """
+            ## Embedding Leaderboard
+
+            This leaderboard compares 100+ text and image embedding models across 1000+ languages. We refer to the publication of each selectable benchmark for details on metrics, languages, tasks, and task types. Anyone is welcome [to add a model](https://github.com/embeddings-benchmark/mteb/blob/main/docs/adding_a_model.md), [add benchmarks](https://github.com/embeddings-benchmark/mteb/blob/main/docs/adding_a_benchmark.md), [help us improve zero-shot annotations](https://github.com/embeddings-benchmark/mteb/blob/06489abca007261c7e6b11f36d4844c5ed5efdcb/mteb/models/bge_models.py#L91) or [propose other changes to the leaderboard](https://github.com/embeddings-benchmark/mteb/tree/main/mteb/leaderboard).
             """
-        ## Embedding Leaderboard
-
-        This leaderboard compares 100+ text and image embedding models across 1000+ languages. We refer to the publication of each selectable benchmark for details on metrics, languages, tasks, and task types. Anyone is welcome [to add a model](https://github.com/embeddings-benchmark/mteb/blob/main/docs/adding_a_model.md), [add benchmarks](https://github.com/embeddings-benchmark/mteb/blob/main/docs/adding_a_benchmark.md), [help us improve zero-shot annotations](https://github.com/embeddings-benchmark/mteb/blob/06489abca007261c7e6b11f36d4844c5ed5efdcb/mteb/models/bge_models.py#L91) or [propose other changes to the leaderboard](https://github.com/embeddings-benchmark/mteb/tree/main/mteb/leaderboard).
-        """
-        )
-        gr.Markdown(
-            lambda name: f"<center> <h2> <b> {name} </b> </h2> </center><br>",
-            inputs=benchmark_select,
-        )
-
-        scores = gr.State(default_scores)
-        models = gr.State(filtered_models)
-        with gr.Row():
-            with gr.Column(scale=1):
-                description = gr.Markdown(  # noqa: F841
-                    update_description,
-                    inputs=[benchmark_select, lang_select, type_select, domain_select],
-                )
-                with gr.Accordion("Cite this benchmark:", open=False):
-                    citation = gr.Markdown(update_citation, inputs=[benchmark_select])  # noqa: F841
-                with gr.Accordion("Share this benchmark:", open=False):
-                    gr.Markdown(produce_benchmark_link, inputs=[benchmark_select])
-            with gr.Column(scale=2):
-                with gr.Tab("Performance per Model Size"):
-                    plot = gr.Plot(performance_size_plot, inputs=[summary_table])  # noqa: F841
-                    gr.Markdown(
-                        "*We only display models that have been run on all tasks in the benchmark*"
-                    )
-                with gr.Tab("Performance per Task Type (Radar Chart)"):
-                    radar_plot = gr.Plot(radar_chart, inputs=[summary_table])  # noqa: F841
-                    gr.Markdown(
-                        "*We only display models that have been run on all task types in the benchmark*"
-                    )
-                with gr.Tab("Section Content"):
-                    section_iframe  # 直接使用 iframe，不需要调用 render()
-
-        with gr.Accordion("Customize this Benchmark", open=False):
-            with gr.Column():
-                with gr.Row():
-                    type_select.render()
-                with gr.Row():
-                    domain_select.render()
-                with gr.Row():
-                    modality_select.render()
-                with gr.Row(elem_classes="overflow-y-scroll max-h-80"):
-                    lang_select.render()
-                with gr.Row(elem_classes="overflow-y-scroll max-h-80"):
-                    task_select.render()
-
-        with gr.Accordion("Advanced Model Filters", open=False):
-            with gr.Group():
-                with gr.Row(elem_classes=""):
-                    with gr.Column():
-                        compatibility = gr.CheckboxGroup(
-                            [
-                                (
-                                    "Should be sentence-transformers compatible",
-                                    "Sentence Transformers",
-                                )
-                            ],
-                            value=[],
-                            label="Compatibility",
-                            interactive=True,
-                        )
-                        availability = gr.Radio(
-                            [
-                                ("Only Open", True),
-                                ("Only Proprietary", False),
-                                ("Both", None),
-                            ],
-                            value=None,
-                            label="Availability",
-                            interactive=True,
-                        )
-                        instructions = gr.Radio(
-                            [
-                                ("Only Instruction-tuned", True),
-                                ("Only non-instruction", False),
-                                ("Both", None),
-                            ],
-                            value=None,
-                            label="Instructions",
-                            interactive=True,
-                        )
-                    with gr.Column():
-                        zero_shot = gr.Radio(
-                            [
-                                (
-                                    "Only Zero-shot",
-                                    "only_zero_shot",
-                                ),
-                                ("Remove Unknown", "remove_unknown"),
-                                ("Allow All", "allow_all"),
-                            ],
-                            value="allow_all",
-                            label="Zero-shot",
-                            interactive=True,
-                        )
-                        model_size = RangeSlider(
-                            minimum=MIN_MODEL_SIZE,
-                            maximum=MAX_MODEL_SIZE,
-                            value=(MIN_MODEL_SIZE, MAX_MODEL_SIZE),
-                            label="Model Size (#M Parameters)",
-                        )
-
-        with gr.Tab("Summary"):
-            summary_table.render()
-            download_summary = gr.DownloadButton("Download Table")
-            download_summary.click(
-                download_table, inputs=[summary_table], outputs=[download_summary]
+            )
+            gr.Markdown(
+                lambda name: f"<center> <h2> <b> {name} </b> </h2> </center><br>",
+                inputs=benchmark_select,
             )
 
-            with gr.Accordion(
-                "Frequently Asked Questions",
-                open=False,
+            scores = gr.State(default_scores)
+            models = gr.State(filtered_models)
+            with gr.Row():
+                with gr.Column(scale=1):
+                    description = gr.Markdown(  # noqa: F841
+                        update_description,
+                        inputs=[benchmark_select, lang_select, type_select, domain_select],
+                    )
+                    with gr.Accordion("Cite this benchmark:", open=False):
+                        citation = gr.Markdown(update_citation, inputs=[benchmark_select])  # noqa: F841
+                    with gr.Accordion("Share this benchmark:", open=False):
+                        gr.Markdown(produce_benchmark_link, inputs=[benchmark_select])
+                with gr.Column(scale=2):
+                    with gr.Tab("Performance per Model Size"):
+                        plot = gr.Plot(performance_size_plot, inputs=[summary_table])  # noqa: F841
+                        gr.Markdown(
+                            "*We only display models that have been run on all tasks in the benchmark*"
+                        )
+                    with gr.Tab("Performance per Task Type (Radar Chart)"):
+                        radar_plot = gr.Plot(radar_chart, inputs=[summary_table])  # noqa: F841
+                        gr.Markdown(
+                            "*We only display models that have been run on all task types in the benchmark*"
+                        )
+
+            with gr.Accordion("Customize this Benchmark", open=False):
+                with gr.Column():
+                    with gr.Row():
+                        type_select.render()
+                    with gr.Row():
+                        domain_select.render()
+                    with gr.Row():
+                        modality_select.render()
+                    with gr.Row(elem_classes="overflow-y-scroll max-h-80"):
+                        lang_select.render()
+                    with gr.Row(elem_classes="overflow-y-scroll max-h-80"):
+                        task_select.render()
+
+            with gr.Accordion("Advanced Model Filters", open=False):
+                with gr.Group():
+                    with gr.Row(elem_classes=""):
+                        with gr.Column():
+                            compatibility = gr.CheckboxGroup(
+                                [
+                                    (
+                                        "Should be sentence-transformers compatible",
+                                        "Sentence Transformers",
+                                    )
+                                ],
+                                value=[],
+                                label="Compatibility",
+                                interactive=True,
+                            )
+                            availability = gr.Radio(
+                                [
+                                    ("Only Open", True),
+                                    ("Only Proprietary", False),
+                                    ("Both", None),
+                                ],
+                                value=None,
+                                label="Availability",
+                                interactive=True,
+                            )
+                            instructions = gr.Radio(
+                                [
+                                    ("Only Instruction-tuned", True),
+                                    ("Only non-instruction", False),
+                                    ("Both", None),
+                                ],
+                                value=None,
+                                label="Instructions",
+                                interactive=True,
+                            )
+                        with gr.Column():
+                            zero_shot = gr.Radio(
+                                [
+                                    (
+                                        "Only Zero-shot",
+                                        "only_zero_shot",
+                                    ),
+                                    ("Remove Unknown", "remove_unknown"),
+                                    ("Allow All", "allow_all"),
+                                ],
+                                value="allow_all",
+                                label="Zero-shot",
+                                interactive=True,
+                            )
+                            model_size = RangeSlider(
+                                minimum=MIN_MODEL_SIZE,
+                                maximum=MAX_MODEL_SIZE,
+                                value=(MIN_MODEL_SIZE, MAX_MODEL_SIZE),
+                                label="Model Size (#M Parameters)",
+                            )
+
+            with gr.Tab("Summary"):
+                summary_table.render()
+                download_summary = gr.DownloadButton("Download Table")
+                download_summary.click(
+                    download_table, inputs=[summary_table], outputs=[download_summary]
+                )
+
+                with gr.Accordion(
+                    "Frequently Asked Questions",
+                    open=False,
+                ):
+                    gr.Markdown(FAQ)
+            with gr.Tab("Performance per task"):
+                per_task_table.render()
+                download_per_task = gr.DownloadButton("Download Table")
+                download_per_task.click(
+                    download_table, inputs=[per_task_table], outputs=[download_per_task]
+                )
+            with gr.Tab("Task information"):
+                task_info_table = gr.DataFrame(update_task_info, inputs=[task_select])  # noqa: F841
+
+            # This sets the benchmark from the URL query parameters
+            demo.load(set_benchmark_on_load, inputs=[], outputs=[benchmark_select])
+
+            @cachetools.cached(
+                cache={},
+                key=lambda benchmark_name: hash(benchmark_name),
+            )
+            def on_benchmark_select(benchmark_name):
+                start_time = time.time()
+                benchmark = mteb.get_benchmark(benchmark_name)
+                languages = [task.languages for task in benchmark.tasks if task.languages]
+                languages = set(itertools.chain.from_iterable(languages))
+                languages = sorted(languages)
+                domains = [
+                    task.metadata.domains
+                    for task in benchmark.tasks
+                    if task.metadata.domains
+                ]
+                domains = set(itertools.chain.from_iterable(domains))
+                types = {
+                    task.metadata.type for task in benchmark.tasks if task.metadata.type
+                }
+                modalities = set()
+                for task in benchmark.tasks:
+                    modalities.update(task.metadata.modalities)
+                languages, domains, types, modalities = (
+                    sorted(languages),
+                    sorted(domains),
+                    sorted(types),
+                    sorted(modalities),
+                )
+                elapsed = time.time() - start_time
+                benchmark_results = all_benchmark_results[benchmark_name]
+                scores = benchmark_results.get_scores(format="long")
+                logger.debug(f"on_benchmark_select callback: {elapsed}s")
+                return (
+                    languages,
+                    domains,
+                    types,
+                    modalities,
+                    sorted([task.metadata.name for task in benchmark.tasks]),
+                    scores,
+                )
+
+            benchmark_select.change(
+                on_benchmark_select,
+                inputs=[benchmark_select],
+                outputs=[
+                    lang_select,
+                    domain_select,
+                    type_select,
+                    modality_select,
+                    task_select,
+                    scores,
+                ],
+            )
+
+            @cachetools.cached(
+                cache={},
+                key=lambda benchmark_name, languages: hash(
+                    (hash(benchmark_name), hash(tuple(languages)))
+                ),
+            )
+            def update_scores_on_lang_change(benchmark_name, languages):
+                start_time = time.time()
+                if not len(languages):
+                    return []
+                benchmark_results = all_benchmark_results[benchmark_name]
+                scores = benchmark_results.get_scores(languages=languages, format="long")
+                elapsed = time.time() - start_time
+                logger.debug(f"update_scores callback: {elapsed}s")
+                return scores
+
+            lang_select.input(
+                update_scores_on_lang_change,
+                inputs=[benchmark_select, lang_select],
+                outputs=[scores],
+            )
+
+            @cachetools.cached(
+                cache={},
+                key=lambda benchmark_name,
+                type_select,
+                domain_select,
+                lang_select,
+                modality_select: hash(
+                    (
+                        hash(benchmark_name),
+                        hash(tuple(type_select)),
+                        hash(tuple(domain_select)),
+                        hash(tuple(lang_select)),
+                        hash(tuple(modality_select)),
+                    )
+                ),
+            )
+            def update_task_list(
+                benchmark_name, type_select, domain_select, lang_select, modality_select
             ):
-                gr.Markdown(FAQ)
-        with gr.Tab("Performance per task"):
-            per_task_table.render()
-            download_per_task = gr.DownloadButton("Download Table")
-            download_per_task.click(
-                download_table, inputs=[per_task_table], outputs=[download_per_task]
+                if not len(lang_select):
+                    return []
+                start_time = time.time()
+                tasks_to_keep = []
+                for task in mteb.get_benchmark(benchmark_name).tasks:
+                    if task.metadata.type not in type_select:
+                        continue
+                    if task.metadata.domains is not None and not (
+                        set(task.metadata.domains) & set(domain_select)
+                    ):
+                        continue
+                    if task.languages is not None and not (
+                        set(task.languages) & set(lang_select)
+                    ):
+                        continue
+                    if task.metadata.modalities and not (
+                        set(task.metadata.modalities) & set(modality_select)
+                    ):
+                        continue
+                    tasks_to_keep.append(task.metadata.name)
+                elapsed = time.time() - start_time
+                logger.debug(f"update_task_list callback: {elapsed}s")
+                return sorted(tasks_to_keep)
+
+            type_select.input(
+                update_task_list,
+                inputs=[
+                    benchmark_select,
+                    type_select,
+                    domain_select,
+                    lang_select,
+                    modality_select,
+                ],
+                outputs=[task_select],
             )
-        with gr.Tab("Task information"):
-            task_info_table = gr.DataFrame(update_task_info, inputs=[task_select])  # noqa: F841
-
-        # This sets the benchmark from the URL query parameters
-        demo.load(set_benchmark_on_load, inputs=[], outputs=[benchmark_select])
-
-        @cachetools.cached(
-            cache={},
-            key=lambda benchmark_name: hash(benchmark_name),
-        )
-        def on_benchmark_select(benchmark_name):
-            start_time = time.time()
-            benchmark = mteb.get_benchmark(benchmark_name)
-            languages = [task.languages for task in benchmark.tasks if task.languages]
-            languages = set(itertools.chain.from_iterable(languages))
-            languages = sorted(languages)
-            domains = [
-                task.metadata.domains
-                for task in benchmark.tasks
-                if task.metadata.domains
-            ]
-            domains = set(itertools.chain.from_iterable(domains))
-            types = {
-                task.metadata.type for task in benchmark.tasks if task.metadata.type
-            }
-            modalities = set()
-            for task in benchmark.tasks:
-                modalities.update(task.metadata.modalities)
-            languages, domains, types, modalities = (
-                sorted(languages),
-                sorted(domains),
-                sorted(types),
-                sorted(modalities),
+            domain_select.input(
+                update_task_list,
+                inputs=[
+                    benchmark_select,
+                    type_select,
+                    domain_select,
+                    lang_select,
+                    modality_select,
+                ],
+                outputs=[task_select],
             )
-            elapsed = time.time() - start_time
-            benchmark_results = all_benchmark_results[benchmark_name]
-            scores = benchmark_results.get_scores(format="long")
-            logger.debug(f"on_benchmark_select callback: {elapsed}s")
-            return (
-                languages,
-                domains,
-                types,
-                modalities,
-                sorted([task.metadata.name for task in benchmark.tasks]),
-                scores,
+            lang_select.input(
+                update_task_list,
+                inputs=[
+                    benchmark_select,
+                    type_select,
+                    domain_select,
+                    lang_select,
+                    modality_select,
+                ],
+                outputs=[task_select],
+            )
+            modality_select.input(
+                update_task_list,
+                inputs=[
+                    benchmark_select,
+                    type_select,
+                    domain_select,
+                    lang_select,
+                    modality_select,
+                ],
+                outputs=[task_select],
             )
 
-        benchmark_select.change(
-            on_benchmark_select,
-            inputs=[benchmark_select],
-            outputs=[
-                lang_select,
-                domain_select,
-                type_select,
-                modality_select,
-                task_select,
-                scores,
-            ],
-        )
-
-        @cachetools.cached(
-            cache={},
-            key=lambda benchmark_name, languages: hash(
-                (hash(benchmark_name), hash(tuple(languages)))
-            ),
-        )
-        def update_scores_on_lang_change(benchmark_name, languages):
-            start_time = time.time()
-            if not len(languages):
-                return []
-            benchmark_results = all_benchmark_results[benchmark_name]
-            scores = benchmark_results.get_scores(languages=languages, format="long")
-            elapsed = time.time() - start_time
-            logger.debug(f"update_scores callback: {elapsed}s")
-            return scores
-
-        lang_select.input(
-            update_scores_on_lang_change,
-            inputs=[benchmark_select, lang_select],
-            outputs=[scores],
-        )
-
-        @cachetools.cached(
-            cache={},
-            key=lambda benchmark_name,
-            type_select,
-            domain_select,
-            lang_select,
-            modality_select: hash(
-                (
-                    hash(benchmark_name),
-                    hash(tuple(type_select)),
-                    hash(tuple(domain_select)),
-                    hash(tuple(lang_select)),
-                    hash(tuple(modality_select)),
-                )
-            ),
-        )
-        def update_task_list(
-            benchmark_name, type_select, domain_select, lang_select, modality_select
-        ):
-            if not len(lang_select):
-                return []
-            start_time = time.time()
-            tasks_to_keep = []
-            for task in mteb.get_benchmark(benchmark_name).tasks:
-                if task.metadata.type not in type_select:
-                    continue
-                if task.metadata.domains is not None and not (
-                    set(task.metadata.domains) & set(domain_select)
-                ):
-                    continue
-                if task.languages is not None and not (
-                    set(task.languages) & set(lang_select)
-                ):
-                    continue
-                if task.metadata.modalities and not (
-                    set(task.metadata.modalities) & set(modality_select)
-                ):
-                    continue
-                tasks_to_keep.append(task.metadata.name)
-            elapsed = time.time() - start_time
-            logger.debug(f"update_task_list callback: {elapsed}s")
-            return sorted(tasks_to_keep)
-
-        type_select.input(
-            update_task_list,
-            inputs=[
-                benchmark_select,
-                type_select,
-                domain_select,
-                lang_select,
-                modality_select,
-            ],
-            outputs=[task_select],
-        )
-        domain_select.input(
-            update_task_list,
-            inputs=[
-                benchmark_select,
-                type_select,
-                domain_select,
-                lang_select,
-                modality_select,
-            ],
-            outputs=[task_select],
-        )
-        lang_select.input(
-            update_task_list,
-            inputs=[
-                benchmark_select,
-                type_select,
-                domain_select,
-                lang_select,
-                modality_select,
-            ],
-            outputs=[task_select],
-        )
-        modality_select.input(
-            update_task_list,
-            inputs=[
-                benchmark_select,
-                type_select,
-                domain_select,
-                lang_select,
-                modality_select,
-            ],
-            outputs=[task_select],
-        )
-
-        @cachetools.cached(
-            cache={},
-            key=lambda scores,
-            tasks,
-            availability,
-            compatibility,
-            instructions,
-            model_size,
-            zero_shot: hash(
-                (
-                    id(scores),
-                    hash(tuple(tasks)),
-                    hash(availability),
-                    hash(tuple(compatibility)),
-                    hash(instructions),
-                    hash(model_size),
-                    hash(zero_shot),
-                )
-            ),
-        )
-        def update_models(
-            scores: list[dict],
-            tasks: list[str],
-            availability: bool | None,
-            compatibility: list[str],
-            instructions: bool | None,
-            model_size: tuple[int, int],
-            zero_shot: Literal["allow_all", "remove_unknown", "only_zero_shot"],
-        ):
-            start_time = time.time()
-            model_names = list({entry["model_name"] for entry in scores})
-            filtered_models = filter_models(
-                model_names,
+            @cachetools.cached(
+                cache={},
+                key=lambda scores,
                 tasks,
                 availability,
                 compatibility,
                 instructions,
                 model_size,
-                zero_shot_setting=zero_shot,
+                zero_shot: hash(
+                    (
+                        id(scores),
+                        hash(tuple(tasks)),
+                        hash(availability),
+                        hash(tuple(compatibility)),
+                        hash(instructions),
+                        hash(model_size),
+                        hash(zero_shot),
+                    )
+                ),
             )
-            elapsed = time.time() - start_time
-            if model_names == filtered_models:
-                # This indicates that the models should not be filtered
-                return None
-            logger.debug(f"update_models callback: {elapsed}s")
-            return sorted(filtered_models)
-
-        scores.change(
-            update_models,
-            inputs=[
-                scores,
-                task_select,
-                availability,
-                compatibility,
-                instructions,
-                model_size,
-                zero_shot,
-            ],
-            outputs=[models],
-        )
-        task_select.change(
-            update_models,
-            inputs=[
-                scores,
-                task_select,
-                availability,
-                compatibility,
-                instructions,
-                model_size,
-                zero_shot,
-            ],
-            outputs=[models],
-        )
-        availability.input(
-            update_models,
-            inputs=[
-                scores,
-                task_select,
-                availability,
-                compatibility,
-                instructions,
-                model_size,
-                zero_shot,
-            ],
-            outputs=[models],
-        )
-        compatibility.input(
-            update_models,
-            inputs=[
-                scores,
-                task_select,
-                availability,
-                compatibility,
-                instructions,
-                model_size,
-                zero_shot,
-            ],
-            outputs=[models],
-        )
-        instructions.input(
-            update_models,
-            inputs=[
-                scores,
-                task_select,
-                availability,
-                compatibility,
-                instructions,
-                model_size,
-                zero_shot,
-            ],
-            outputs=[models],
-        )
-        model_size.change(
-            update_models,
-            inputs=[
-                scores,
-                task_select,
-                availability,
-                compatibility,
-                instructions,
-                model_size,
-                zero_shot,
-            ],
-            outputs=[models],
-        )
-        zero_shot.change(
-            update_models,
-            inputs=[
-                scores,
-                task_select,
-                availability,
-                compatibility,
-                instructions,
-                model_size,
-                zero_shot,
-            ],
-            outputs=[models],
-        )
-
-        @cachetools.cached(
-            cache={},
-            key=lambda scores, tasks, models_to_keep, benchmark_name: hash(
-                (
-                    id(scores),
-                    hash(tuple(tasks)),
-                    id(models_to_keep),
-                    hash(benchmark_name),
+            def update_models(
+                scores: list[dict],
+                tasks: list[str],
+                availability: bool | None,
+                compatibility: list[str],
+                instructions: bool | None,
+                model_size: tuple[int, int],
+                zero_shot: Literal["allow_all", "remove_unknown", "only_zero_shot"],
+            ):
+                start_time = time.time()
+                model_names = list({entry["model_name"] for entry in scores})
+                filtered_models = filter_models(
+                    model_names,
+                    tasks,
+                    availability,
+                    compatibility,
+                    instructions,
+                    model_size,
+                    zero_shot_setting=zero_shot,
                 )
-            ),
-        )
-        def update_tables(
-            scores,
-            tasks,
-            models_to_keep,
-            benchmark_name: str,
-        ):
-            start_time = time.time()
-            tasks = set(tasks)
-            benchmark = mteb.get_benchmark(benchmark_name)
-            benchmark_tasks = {task.metadata.name for task in benchmark.tasks}
-            if (benchmark_tasks != tasks) or (models_to_keep is not None):
-                filtered_scores = []
-                for entry in scores:
-                    if entry["task_name"] not in tasks:
-                        continue
-                    if (models_to_keep is not None) and (
-                        entry["model_name"] not in models_to_keep
-                    ):
-                        continue
-                    filtered_scores.append(entry)
-            else:
-                filtered_scores = scores
-            summary, per_task = create_tables(filtered_scores)
-            elapsed = time.time() - start_time
-            logger.debug(f"update_tables callback: {elapsed}s")
-            return summary, per_task
+                elapsed = time.time() - start_time
+                if model_names == filtered_models:
+                    # This indicates that the models should not be filtered
+                    return None
+                logger.debug(f"update_models callback: {elapsed}s")
+                return sorted(filtered_models)
 
-        task_select.change(
-            update_tables,
-            inputs=[scores, task_select, models, benchmark_select],
-            outputs=[summary_table, per_task_table],
-        )
-        scores.change(
-            update_tables,
-            inputs=[scores, task_select, models, benchmark_select],
-            outputs=[summary_table, per_task_table],
-        )
-        models.change(
-            update_tables,
-            inputs=[scores, task_select, models, benchmark_select],
-            outputs=[summary_table, per_task_table],
-        )
+            scores.change(
+                update_models,
+                inputs=[
+                    scores,
+                    task_select,
+                    availability,
+                    compatibility,
+                    instructions,
+                    model_size,
+                    zero_shot,
+                ],
+                outputs=[models],
+            )
+            task_select.change(
+                update_models,
+                inputs=[
+                    scores,
+                    task_select,
+                    availability,
+                    compatibility,
+                    instructions,
+                    model_size,
+                    zero_shot,
+                ],
+                outputs=[models],
+            )
+            availability.input(
+                update_models,
+                inputs=[
+                    scores,
+                    task_select,
+                    availability,
+                    compatibility,
+                    instructions,
+                    model_size,
+                    zero_shot,
+                ],
+                outputs=[models],
+            )
+            compatibility.input(
+                update_models,
+                inputs=[
+                    scores,
+                    task_select,
+                    availability,
+                    compatibility,
+                    instructions,
+                    model_size,
+                    zero_shot,
+                ],
+                outputs=[models],
+            )
+            instructions.input(
+                update_models,
+                inputs=[
+                    scores,
+                    task_select,
+                    availability,
+                    compatibility,
+                    instructions,
+                    model_size,
+                    zero_shot,
+                ],
+                outputs=[models],
+            )
+            model_size.change(
+                update_models,
+                inputs=[
+                    scores,
+                    task_select,
+                    availability,
+                    compatibility,
+                    instructions,
+                    model_size,
+                    zero_shot,
+                ],
+                outputs=[models],
+            )
+            zero_shot.change(
+                update_models,
+                inputs=[
+                    scores,
+                    task_select,
+                    availability,
+                    compatibility,
+                    instructions,
+                    model_size,
+                    zero_shot,
+                ],
+                outputs=[models],
+            )
+
+            @cachetools.cached(
+                cache={},
+                key=lambda scores, tasks, models_to_keep, benchmark_name: hash(
+                    (
+                        id(scores),
+                        hash(tuple(tasks)),
+                        id(models_to_keep),
+                        hash(benchmark_name),
+                    )
+                ),
+            )
+            def update_tables(
+                scores,
+                tasks,
+                models_to_keep,
+                benchmark_name: str,
+            ):
+                start_time = time.time()
+                tasks = set(tasks)
+                benchmark = mteb.get_benchmark(benchmark_name)
+                benchmark_tasks = {task.metadata.name for task in benchmark.tasks}
+                if (benchmark_tasks != tasks) or (models_to_keep is not None):
+                    filtered_scores = []
+                    for entry in scores:
+                        if entry["task_name"] not in tasks:
+                            continue
+                        if (models_to_keep is not None) and (
+                            entry["model_name"] not in models_to_keep
+                        ):
+                            continue
+                        filtered_scores.append(entry)
+                else:
+                    filtered_scores = scores
+                summary, per_task = create_tables(filtered_scores)
+                elapsed = time.time() - start_time
+                logger.debug(f"update_tables callback: {elapsed}s")
+                return summary, per_task
+
+            task_select.change(
+                update_tables,
+                inputs=[scores, task_select, models, benchmark_select],
+                outputs=[summary_table, per_task_table],
+            )
+            scores.change(
+                update_tables,
+                inputs=[scores, task_select, models, benchmark_select],
+                outputs=[summary_table, per_task_table],
+            )
+            models.change(
+                update_tables,
+                inputs=[scores, task_select, models, benchmark_select],
+                outputs=[summary_table, per_task_table],
+            )
+
+        # 当 section_select 改变时更新 iframe
+        def update_iframe(section_name):
+            if not section_name:
+                return gr.HTML(visible=False), gr.Column(visible=True)
+            # 从 SECTION_ENTRIES 中找到对应的 URL
+            for entry in SECTION_ENTRIES:
+                for item in entry.items:
+                    if item["name"] == section_name:
+                        return gr.HTML(
+                            value=f'<iframe src="{item["url"]}" width="100%" height="800px" frameborder="0"></iframe>',
+                            visible=True), gr.Column(visible=False)
+            return gr.HTML(visible=False), gr.Column(visible=True)
+
+        # 当 benchmark_select 改变时更新内容
+        def update_benchmark_content(benchmark_name):
+            if not benchmark_name:
+                return gr.Column(visible=False), gr.HTML(visible=False)
+            return gr.Column(visible=True), gr.HTML(visible=False)
+
+        section_select.change(update_iframe, inputs=[section_select], outputs=[iframe, benchmark_content])
+        benchmark_select.change(update_benchmark_content, inputs=[benchmark_select], outputs=[benchmark_content, iframe])
 
         gr.Markdown(ACKNOWLEDGEMENT, elem_id="ack_markdown")
 

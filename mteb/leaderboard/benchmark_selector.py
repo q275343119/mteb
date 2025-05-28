@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Tuple
 
 import gradio as gr
 
@@ -29,29 +29,30 @@ SECTION_ENTRIES = [
     SectionEntry(
         None,
         [
-            {"name": "Section A", "url": "https://example.com/section-a"},
-            {"name": "Section B", "url": "https://example.com/section-b"},
+            {"name": "📚Text Leaderboard", "url": "https://q275343119-streamlit-rteb.hf.space/?sider_bar_hidden=true"},
+            {"name": "📜Legal", "url": "https://q275343119-streamlit-rteb.hf.space/legal?sider_bar_hidden=true"},
+            {"name": "🇬🇧English", "url": "https://q275343119-streamlit-rteb.hf.space/english?sider_bar_hidden=true"},
+            {"name": "💻Code", "url": "https://q275343119-streamlit-rteb.hf.space/code?sider_bar_hidden=true"},
+            {"name": "🏥Healthcare", "url": "https://q275343119-streamlit-rteb.hf.space/healthcare?sider_bar_hidden=true"},
+            {"name": "💰Finance", "url": "https://q275343119-streamlit-rteb.hf.space/finance?sider_bar_hidden=true"},
+            {"name": "🇩🇪German", "url": "https://q275343119-streamlit-rteb.hf.space/german?sider_bar_hidden=true"},
+            {"name": "🇫🇷French", "url": "https://q275343119-streamlit-rteb.hf.space/french?sider_bar_hidden=true"},
+            {"name": "Japanese", "url": "https://q275343119-streamlit-rteb.hf.space/japanese?sider_bar_hidden=true"},
+
         ],
         False,
         size="md",
     ),
-    SectionEntry(
-        "Category 1",
-        [
-            {"name": "Item 1", "url": "https://example.com/item-1"},
-            {"name": "Item 2", "url": "https://example.com/item-2"},
-            {"name": "Item 3", "url": "https://example.com/item-3"},
-        ],
-        True,
-    ),
-    SectionEntry(
-        "Category 2",
-        [
-            {"name": "Item 4", "url": "https://example.com/item-4"},
-            {"name": "Item 5", "url": "https://example.com/item-5"},
-            {"name": "Item 6", "url": "https://example.com/item-6"},
-        ],
-    ),
+    # SectionEntry(
+    #     "Category 1",
+    #     [
+    #         {"name": "Item 1", "url": "https://example.com/item-1"},
+    #         {"name": "Item 2", "url": "https://example.com/item-2"},
+    #         {"name": "Item 3", "url": "https://example.com/item-3"},
+    #     ],
+    #     True,
+    # ),
+
 ]
 
 BENCHMARK_ENTRIES = [
@@ -94,46 +95,46 @@ BENCHMARK_ENTRIES = [
             ]
         ),
     ),
-    MenuEntry(
-        "Language-specific",
-        mteb.get_benchmarks(
-            [
-                "MTEB(cmn, v1)",
-                "MTEB(deu, v1)",
-                "MTEB(fra, v1)",
-                "MTEB(jpn, v1)",
-                "MTEB(kor, v1)",
-                "MTEB(pol, v1)",
-                "MTEB(rus, v1)",
-            ]
-        ),
-    ),
-    MenuEntry(
-        "Miscellaneous",
-        mteb.get_benchmarks(
-            [
-                "BEIR",
-                "BEIR-NL",
-                "NanoBEIR",
-                "BRIGHT",
-                "BRIGHT (long)",
-                "BuiltBench(eng)",
-                "CoIR",
-                "FollowIR",
-                "LongEmbed",
-                "MINERSBitextMining",
-                "RAR-b",
-            ]
-        ),
-    ),
-    MenuEntry(
-        "Legacy",
-        mteb.get_benchmarks(
-            [
-                "MTEB(eng, v1)",
-            ]
-        ),
-    ),
+    # MenuEntry(
+    #     "Language-specific",
+    #     mteb.get_benchmarks(
+    #         [
+    #             "MTEB(cmn, v1)",
+    #             "MTEB(deu, v1)",
+    #             "MTEB(fra, v1)",
+    #             "MTEB(jpn, v1)",
+    #             "MTEB(kor, v1)",
+    #             "MTEB(pol, v1)",
+    #             "MTEB(rus, v1)",
+    #         ]
+    #     ),
+    # ),
+    # MenuEntry(
+    #     "Miscellaneous",
+    #     mteb.get_benchmarks(
+    #         [
+    #             "BEIR",
+    #             "BEIR-NL",
+    #             "NanoBEIR",
+    #             "BRIGHT",
+    #             "BRIGHT (long)",
+    #             "BuiltBench(eng)",
+    #             "CoIR",
+    #             "FollowIR",
+    #             "LongEmbed",
+    #             "MINERSBitextMining",
+    #             "RAR-b",
+    #         ]
+    #     ),
+    # ),
+    # MenuEntry(
+    #     "Legacy",
+    #     mteb.get_benchmarks(
+    #         [
+    #             "MTEB(eng, v1)",
+    #         ]
+    #     ),
+    # ),
 ]
 
 
@@ -204,57 +205,60 @@ def _create_section_button(
     i: int,
     item: dict[str, Any],
     state: gr.State,
-    iframe: gr.HTML,
     **kwargs,
 ):
     button = gr.Button(
         item["name"],
-        variant="secondary" if i != 0 else "primary",
+        variant="secondary",  # 所有按钮都使用secondary样式
         key=f"{i}_button_{item['name']}",
         elem_classes="text-white",
         **kwargs,
     )
 
-    def _update_variant(state: str, name: str) -> gr.Button:
+    def _update_variant(state: str | None, name: str) -> gr.Button:
         if state == name:
             return gr.Button(variant="primary")
         else:
             return gr.Button(variant="secondary")
 
-    def _update_value(name: str) -> tuple[str, str]:
-        return name, f'<iframe src="{item["url"]}" width="100%" height="600px" frameborder="0"></iframe>'
+    def _update_value(name: str) -> str:
+        return name
 
     state.change(_update_variant, inputs=[state, button], outputs=[button])
-    button.click(_update_value, inputs=[button], outputs=[state, iframe])
+    button.click(_update_value, inputs=[button], outputs=[state])
     return button
 
 
 def make_section_selector(
     entries: list[SectionEntry],
-) -> tuple[gr.State, gr.Column, gr.HTML]:
+) -> tuple[gr.State, gr.Column, str]:
     if not entries:
         raise ValueError("No entries were specified, can't build selector.")
     
     with gr.Column() as column:
-        state = gr.State(entries[0].items[0]["name"])
-        iframe = gr.HTML(value=f'<iframe src="{entries[0].items[0]["url"]}" width="100%" height="600px" frameborder="0"></iframe>')
+        state = gr.State(None)
         i = 0
+        url = ""
         for entry in entries:
             if entry.name is None:
                 for item in entry.items:
                     button = _create_section_button(
-                        i, item, state, iframe, size=entry.size
+                        i, item, state, size=entry.size
                     )
+                    if state.value == item["name"]:
+                        url = item["url"]
                     i += 1
             if entry.name is not None:
                 with gr.Accordion(entry.name, open=entry.open):
                     for item in entry.items:
                         button = _create_section_button(  # noqa: F841
-                            i, item, state, iframe, size=entry.size
+                            i, item, state, size=entry.size
                         )
+                        if state.value == item["name"]:
+                            url = item["url"]
                         i += 1
 
-    return state, column, iframe
+    return state, column, url
 
 
 if __name__ == "__main__":
