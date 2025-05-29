@@ -29,29 +29,28 @@ SECTION_ENTRIES = [
     SectionEntry(
         None,
         [
-            {"name": "📚Text Leaderboard", "url": "https://q275343119-streamlit-rteb.hf.space/?sider_bar_hidden=true"},
-            {"name": "📜Legal", "url": "https://q275343119-streamlit-rteb.hf.space/legal?sider_bar_hidden=true"},
-            {"name": "🇬🇧English", "url": "https://q275343119-streamlit-rteb.hf.space/english?sider_bar_hidden=true"},
-            {"name": "💻Code", "url": "https://q275343119-streamlit-rteb.hf.space/code?sider_bar_hidden=true"},
-            {"name": "🏥Healthcare", "url": "https://q275343119-streamlit-rteb.hf.space/healthcare?sider_bar_hidden=true"},
-            {"name": "💰Finance", "url": "https://q275343119-streamlit-rteb.hf.space/finance?sider_bar_hidden=true"},
-            {"name": "🇩🇪German", "url": "https://q275343119-streamlit-rteb.hf.space/german?sider_bar_hidden=true"},
-            {"name": "🇫🇷French", "url": "https://q275343119-streamlit-rteb.hf.space/french?sider_bar_hidden=true"},
-            {"name": "Japanese", "url": "https://q275343119-streamlit-rteb.hf.space/japanese?sider_bar_hidden=true"},
+            {"name": "Overall", "url": "https://q275343119-streamlit-rteb.hf.space/?sider_bar_hidden=true"},
+
 
         ],
         False,
         size="md",
     ),
-    # SectionEntry(
-    #     "Category 1",
-    #     [
-    #         {"name": "Item 1", "url": "https://example.com/item-1"},
-    #         {"name": "Item 2", "url": "https://example.com/item-2"},
-    #         {"name": "Item 3", "url": "https://example.com/item-3"},
-    #     ],
-    #     True,
-    # ),
+    SectionEntry(
+        "Domain-Specific",
+        [
+            {"name": "📜Legal", "url": "https://q275343119-streamlit-rteb.hf.space/legal?sider_bar_hidden=true"},
+            {"name": "🇬🇧English", "url": "https://q275343119-streamlit-rteb.hf.space/english?sider_bar_hidden=true"},
+            {"name": "💻Code", "url": "https://q275343119-streamlit-rteb.hf.space/code?sider_bar_hidden=true"},
+            {"name": "🏥Healthcare",
+             "url": "https://q275343119-streamlit-rteb.hf.space/healthcare?sider_bar_hidden=true"},
+            {"name": "💰Finance", "url": "https://q275343119-streamlit-rteb.hf.space/finance?sider_bar_hidden=true"},
+            {"name": "🇩🇪German", "url": "https://q275343119-streamlit-rteb.hf.space/german?sider_bar_hidden=true"},
+            {"name": "🇫🇷French", "url": "https://q275343119-streamlit-rteb.hf.space/french?sider_bar_hidden=true"},
+            {"name": "Japanese", "url": "https://q275343119-streamlit-rteb.hf.space/japanese?sider_bar_hidden=true"},
+        ],
+        False,
+    ),
 
 ]
 
@@ -72,7 +71,7 @@ BENCHMARK_ENTRIES = [
                 "MIEB(Img)",
             ]
         ),
-        True,
+        False,
     ),
     MenuEntry(
         "Domain-Specific",
