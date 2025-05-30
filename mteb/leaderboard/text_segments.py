@@ -39,10 +39,10 @@ see existing implementations [here](https://github.com/embeddings-benchmark/mteb
 
 
 ACKNOWLEDGEMENT = """
-<div style="border-top: 1px solid #ddd; margin-top: 30px; padding-top: 10px; font-size: 0.85em; color: #666;">
+<div style="border-top: 1px solid #ddd; margin-top: 30px; padding-top: 10px; font-size: 0.85em; color: #666; max-height: fit-content; overflow: hidden;">
   <p><strong>Acknowledgment:</strong> We thank <a href="https://cloud.google.com/">Google</a>, <a href="https://www.servicenow.com/">ServiceNow</a>, <a href="https://contextual.ai/">Contextual AI</a> and <a href="https://huggingface.co/">Hugging Face</a> for their generous sponsorship. If you'd like to sponsor us, please get in <a href="mailto:n.muennighoff@gmail.com">touch</a>.</p>
   
-<div class="sponsor-image-about" style="display: flex; align-items: center; gap: 10px;">
+<div class="sponsor-image-about" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; max-width: 100%;">
     <a href="https://cloud.google.com/">
         <img src="https://img.icons8.com/?size=512&id=17949&format=png" width="60" height="55" style="padding: 10px;">
     </a>
