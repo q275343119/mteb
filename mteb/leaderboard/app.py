@@ -283,9 +283,11 @@ def get_leaderboard_app() -> gr.Blocks:
         ):
             gr.Markdown("## General Purpose")
             benchmark_select, column = make_selector(BENCHMARK_ENTRIES)
-            
+
             gr.Markdown("## Retrieval")
-            section_select, section_column, section_iframe = make_section_selector(SECTION_ENTRIES)
+            section_select, section_column, section_iframe = make_section_selector(
+                SECTION_ENTRIES
+            )
 
         # 创建一个 iframe 组件
         iframe = gr.HTML(visible=False)
@@ -310,10 +312,17 @@ def get_leaderboard_app() -> gr.Blocks:
                 with gr.Column(scale=1):
                     description = gr.Markdown(  # noqa: F841
                         update_description,
-                        inputs=[benchmark_select, lang_select, type_select, domain_select],
+                        inputs=[
+                            benchmark_select,
+                            lang_select,
+                            type_select,
+                            domain_select,
+                        ],
                     )
                     with gr.Accordion("Cite this benchmark:", open=False):
-                        citation = gr.Markdown(update_citation, inputs=[benchmark_select])  # noqa: F841
+                        citation = gr.Markdown(
+                            update_citation, inputs=[benchmark_select]
+                        )  # noqa: F841
                     with gr.Accordion("Share this benchmark:", open=False):
                         gr.Markdown(produce_benchmark_link, inputs=[benchmark_select])
                 with gr.Column(scale=2):
@@ -787,8 +796,9 @@ def get_leaderboard_app() -> gr.Blocks:
                 for item in entry.items:
                     if item["name"] == section_name:
                         return gr.HTML(
-                            value=f'<div style="height: 800px; overflow: hidden;"><iframe src="{item["url"]}" width="100%" height="100%" frameborder="0" style="border: none;"></iframe></div>',
-                            visible=True), gr.Column(visible=False)
+                            value=f'<div style="height: 800px; overflow: hidden; position: relative;"><iframe src="{item["url"]}" width="100%" height="100%" frameborder="0" style="border: none; position: absolute; top: 0; left: 0;"></iframe></div>',
+                            visible=True,
+                        ), gr.Column(visible=False)
             return gr.HTML(visible=False), gr.Column(visible=True)
 
         # 当 benchmark_select 改变时更新内容
@@ -797,8 +807,14 @@ def get_leaderboard_app() -> gr.Blocks:
                 return gr.Column(visible=False), gr.HTML(visible=False)
             return gr.Column(visible=True), gr.HTML(visible=False)
 
-        section_select.change(update_iframe, inputs=[section_select], outputs=[iframe, benchmark_content])
-        benchmark_select.change(update_benchmark_content, inputs=[benchmark_select], outputs=[benchmark_content, iframe])
+        section_select.change(
+            update_iframe, inputs=[section_select], outputs=[iframe, benchmark_content]
+        )
+        benchmark_select.change(
+            update_benchmark_content,
+            inputs=[benchmark_select],
+            outputs=[benchmark_content, iframe],
+        )
 
         gr.Markdown(ACKNOWLEDGEMENT, elem_id="ack_markdown")
 
