@@ -272,7 +272,7 @@ def get_leaderboard_app() -> gr.Blocks:
     .toggle-block {
         transition: all 0.2s ease;
     }
-    .toggle-block[style*="display: none"] {
+    .toggle-block[style*="display: none"][style*="visibility: hidden"] {
         height: 0 !important;
         padding: 0 !important;
         margin: 0 !important;
