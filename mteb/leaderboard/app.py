@@ -285,6 +285,7 @@ def get_leaderboard_app() -> gr.Blocks:
             theme=gr.themes.Soft(
                 font=[gr.themes.GoogleFont("Roboto Mono"), "Arial", "sans-serif"],
             ),
+        css=css_toggle_block,
             head=head,
     ) as demo:
         with gr.Sidebar(
