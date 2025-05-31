@@ -277,7 +277,14 @@ def get_leaderboard_app() -> gr.Blocks:
     padding: 0 !important;
     margin: 0 !important;
     overflow: hidden !important;
-}
+    }
+    
+    #iframe_html iframe {
+        display: block;
+        width: 100%;
+        height: 600px;
+        border: none;
+    }
     """
 
     with gr.Blocks(
@@ -304,7 +311,7 @@ def get_leaderboard_app() -> gr.Blocks:
 
         # 创建一个 iframe 组件
         with gr.Group(visible=False, elem_id="iframe_wrapper", elem_classes="toggle-block") as iframe_group:
-            iframe = gr.HTML(visible=False, elem_classes="toggle-block")
+            iframe = gr.HTML(visible=False, elem_id="iframe_html")
 
         # 创建一个容器来包装 benchmark 内容
         with gr.Column(visible=True, elem_classes="toggle-block") as benchmark_content:
