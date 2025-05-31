@@ -790,22 +790,29 @@ def get_leaderboard_app() -> gr.Blocks:
         # 当 section_select 改变时更新 iframe
         def update_iframe(section_name):
             if not section_name:
-                return gr.HTML(visible=False), gr.Column(visible=True)
-            # 从 SECTION_ENTRIES 中找到对应的 URL
+                return gr.update(visible=False), gr.update(visible=True)
+
             for entry in SECTION_ENTRIES:
                 for item in entry.items:
                     if item["name"] == section_name:
-                        return gr.HTML(
-                            value=f'<div style="height: 800px; overflow: hidden; position: relative;"><iframe src="{item["url"]}" width="100%" height="100%" frameborder="0" style="border: none; position: absolute; top: 0; left: 0;"></iframe></div>',
-                            visible=True,
-                        ), gr.Column(visible=False)
-            return gr.HTML(visible=False), gr.Column(visible=True)
+                        return (
+                            gr.update(
+                                value=f'''
+                                <div style="height: 800px; overflow: hidden; position: relative;">
+                                  <iframe src="{item["url"]}" width="100%" height="100%" frameborder="0" style="border: none; position: absolute; top: 0; left: 0;"></iframe>
+                                </div>
+                                ''',
+                                visible=True,
+                            ),
+                            gr.update(visible=False),
+                        )
+            return gr.update(visible=False), gr.update(visible=True)
 
         # 当 benchmark_select 改变时更新内容
         def update_benchmark_content(benchmark_name):
             if not benchmark_name:
-                return gr.Column(visible=False), gr.HTML(visible=False)
-            return gr.Column(visible=True), gr.HTML(visible=False)
+                return gr.update(visible=False), gr.update(visible=False)
+            return gr.update(visible=True), gr.update(visible=False)
 
         section_select.change(
             update_iframe, inputs=[section_select], outputs=[iframe, benchmark_content]
