@@ -31,7 +31,6 @@ from mteb.leaderboard.text_segments import ACKNOWLEDGEMENT, FAQ
 
 logger = logging.getLogger(__name__)
 
-
 LANGUAGE: list[str] = list({l for t in mteb.get_tasks() for l in t.metadata.languages})
 ALL_MODELS = {meta.name for meta in mteb.get_model_metas()}
 
@@ -86,7 +85,7 @@ def update_citation(benchmark_name: str) -> str:
 
 
 def update_description(
-    benchmark_name: str, languages: list[str], task_types: list[str], domains: list[str]
+        benchmark_name: str, languages: list[str], task_types: list[str], domains: list[str]
 ) -> str:
     benchmark = mteb.get_benchmark(benchmark_name)
     description = f"{benchmark.description}\n"
@@ -155,13 +154,13 @@ MIN_MODEL_SIZE, MAX_MODEL_SIZE = 0, 100_000
 
 
 def filter_models(
-    model_names: list[str],
-    task_select: list[str],
-    availability: bool | None,
-    compatibility: list[str],
-    instructions: bool | None,
-    model_size: tuple[int | None, int | None],
-    zero_shot_setting: Literal["only_zero_shot", "allow_all", "remove_unknown"],
+        model_names: list[str],
+        task_select: list[str],
+        availability: bool | None,
+        compatibility: list[str],
+        instructions: bool | None,
+        model_size: tuple[int | None, int | None],
+        zero_shot_setting: Literal["only_zero_shot", "allow_all", "remove_unknown"],
 ):
     lower, upper = model_size
     # Setting to None, when the user doesn't specify anything
@@ -272,26 +271,27 @@ def get_leaderboard_app() -> gr.Blocks:
     .toggle-block {
         transition: all 0.2s ease;
     }
-    .toggle-block[style*="display: none"][style*="visibility: hidden"] {
-        height: 0 !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        overflow: hidden !important;
-    }
+    .toggle-block[style*="display: none"],
+    .toggle-block[style*="visibility: hidden"] {
+    height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+}
     """
 
     with gr.Blocks(
-        fill_width=True,
-        theme=gr.themes.Soft(
-            font=[gr.themes.GoogleFont("Roboto Mono"), "Arial", "sans-serif"],
-        ),
-        head=head,
+            fill_width=True,
+            theme=gr.themes.Soft(
+                font=[gr.themes.GoogleFont("Roboto Mono"), "Arial", "sans-serif"],
+            ),
+            head=head,
     ) as demo:
         with gr.Sidebar(
-            position="left",
-            label="Benchmark Selection and Customization",
-            visible=True,
-            width="18%",
+                position="left",
+                label="Benchmark Selection and Customization",
+                visible=True,
+                width="18%",
         ):
             gr.Markdown("## General Purpose")
             benchmark_select, column = make_selector(BENCHMARK_ENTRIES)
@@ -302,10 +302,11 @@ def get_leaderboard_app() -> gr.Blocks:
             )
 
         # 创建一个 iframe 组件
-        iframe = gr.HTML(visible=False,elem_classes="toggle-block")
+        with gr.Group(visible=False, elem_id="iframe_wrapper", elem_classes="toggle-block") as iframe_group:
+            iframe = gr.HTML(visible=False, elem_classes="toggle-block")
 
         # 创建一个容器来包装 benchmark 内容
-        with gr.Column(visible=True,elem_classes="toggle-block") as benchmark_content:
+        with gr.Column(visible=True, elem_classes="toggle-block") as benchmark_content:
             gr.Markdown(
                 """
             ## Embedding Leaderboard
@@ -426,8 +427,8 @@ def get_leaderboard_app() -> gr.Blocks:
                 )
 
                 with gr.Accordion(
-                    "Frequently Asked Questions",
-                    open=False,
+                        "Frequently Asked Questions",
+                        open=False,
                 ):
                     gr.Markdown(FAQ)
             with gr.Tab("Performance per task"):
@@ -521,21 +522,21 @@ def get_leaderboard_app() -> gr.Blocks:
         @cachetools.cached(
             cache={},
             key=lambda benchmark_name,
-            type_select,
-            domain_select,
-            lang_select,
-            modality_select: hash(
+                       type_select,
+                       domain_select,
+                       lang_select,
+                       modality_select: hash(
                 (
-                    hash(benchmark_name),
-                    hash(tuple(type_select)),
-                    hash(tuple(domain_select)),
-                    hash(tuple(lang_select)),
-                    hash(tuple(modality_select)),
+                        hash(benchmark_name),
+                        hash(tuple(type_select)),
+                        hash(tuple(domain_select)),
+                        hash(tuple(lang_select)),
+                        hash(tuple(modality_select)),
                 )
             ),
         )
         def update_task_list(
-            benchmark_name, type_select, domain_select, lang_select, modality_select
+                benchmark_name, type_select, domain_select, lang_select, modality_select
         ):
             if not len(lang_select):
                 return []
@@ -545,15 +546,15 @@ def get_leaderboard_app() -> gr.Blocks:
                 if task.metadata.type not in type_select:
                     continue
                 if task.metadata.domains is not None and not (
-                    set(task.metadata.domains) & set(domain_select)
+                        set(task.metadata.domains) & set(domain_select)
                 ):
                     continue
                 if task.languages is not None and not (
-                    set(task.languages) & set(lang_select)
+                        set(task.languages) & set(lang_select)
                 ):
                     continue
                 if task.metadata.modalities and not (
-                    set(task.metadata.modalities) & set(modality_select)
+                        set(task.metadata.modalities) & set(modality_select)
                 ):
                     continue
                 tasks_to_keep.append(task.metadata.name)
@@ -609,31 +610,31 @@ def get_leaderboard_app() -> gr.Blocks:
         @cachetools.cached(
             cache={},
             key=lambda scores,
-            tasks,
-            availability,
-            compatibility,
-            instructions,
-            model_size,
-            zero_shot: hash(
+                       tasks,
+                       availability,
+                       compatibility,
+                       instructions,
+                       model_size,
+                       zero_shot: hash(
                 (
-                    id(scores),
-                    hash(tuple(tasks)),
-                    hash(availability),
-                    hash(tuple(compatibility)),
-                    hash(instructions),
-                    hash(model_size),
-                    hash(zero_shot),
+                        id(scores),
+                        hash(tuple(tasks)),
+                        hash(availability),
+                        hash(tuple(compatibility)),
+                        hash(instructions),
+                        hash(model_size),
+                        hash(zero_shot),
                 )
             ),
         )
         def update_models(
-            scores: list[dict],
-            tasks: list[str],
-            availability: bool | None,
-            compatibility: list[str],
-            instructions: bool | None,
-            model_size: tuple[int, int],
-            zero_shot: Literal["allow_all", "remove_unknown", "only_zero_shot"],
+                scores: list[dict],
+                tasks: list[str],
+                availability: bool | None,
+                compatibility: list[str],
+                instructions: bool | None,
+                model_size: tuple[int, int],
+                zero_shot: Literal["allow_all", "remove_unknown", "only_zero_shot"],
         ):
             start_time = time.time()
             model_names = list({entry["model_name"] for entry in scores})
@@ -749,18 +750,18 @@ def get_leaderboard_app() -> gr.Blocks:
             cache={},
             key=lambda scores, tasks, models_to_keep, benchmark_name: hash(
                 (
-                    id(scores),
-                    hash(tuple(tasks)),
-                    id(models_to_keep),
-                    hash(benchmark_name),
+                        id(scores),
+                        hash(tuple(tasks)),
+                        id(models_to_keep),
+                        hash(benchmark_name),
                 )
             ),
         )
         def update_tables(
-            scores,
-            tasks,
-            models_to_keep,
-            benchmark_name: str,
+                scores,
+                tasks,
+                models_to_keep,
+                benchmark_name: str,
         ):
             start_time = time.time()
             tasks = set(tasks)
@@ -772,7 +773,7 @@ def get_leaderboard_app() -> gr.Blocks:
                     if entry["task_name"] not in tasks:
                         continue
                     if (models_to_keep is not None) and (
-                        entry["model_name"] not in models_to_keep
+                            entry["model_name"] not in models_to_keep
                     ):
                         continue
                     filtered_scores.append(entry)
@@ -802,7 +803,7 @@ def get_leaderboard_app() -> gr.Blocks:
         # 当 section_select 改变时更新 iframe
         def update_iframe(section_name):
             if not section_name:
-                return gr.update(visible=False), gr.update(visible=True)
+                return gr.update(visible=False), gr.update(visible=True), gr.update(visible=False)
 
             for entry in SECTION_ENTRIES:
                 for item in entry.items:
@@ -816,23 +817,23 @@ def get_leaderboard_app() -> gr.Blocks:
                                 ''',
                                 visible=True,
                             ),
-                            gr.update(visible=False),
+                            gr.update(visible=False), gr.update(visible=True)
                         )
-            return gr.update(visible=False), gr.update(visible=True)
+            return gr.update(visible=False), gr.update(visible=True), gr.update(visible=False)
 
         # 当 benchmark_select 改变时更新内容
         def update_benchmark_content(benchmark_name):
             if not benchmark_name:
-                return gr.update(visible=False), gr.update(visible=False)
-            return gr.update(visible=True), gr.update(visible=False)
+                return gr.update(visible=False), gr.update(visible=False), gr.update(visible=False)
+            return gr.update(visible=True), gr.update(visible=False), gr.update(visible=False)
 
         section_select.change(
-            update_iframe, inputs=[section_select], outputs=[iframe, benchmark_content]
+            update_iframe, inputs=[section_select], outputs=[iframe, benchmark_content, iframe_group]
         )
         benchmark_select.change(
             update_benchmark_content,
             inputs=[benchmark_select],
-            outputs=[benchmark_content, iframe],
+            outputs=[benchmark_content, iframe, iframe_group],
         )
 
         gr.Markdown(ACKNOWLEDGEMENT, elem_id="ack_markdown")
