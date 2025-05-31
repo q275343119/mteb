@@ -268,6 +268,18 @@ def get_leaderboard_app() -> gr.Blocks:
       <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     """
 
+    css_toggle_block = """
+    .toggle-block {
+        transition: all 0.2s ease;
+    }
+    .toggle-block[style*="display: none"] {
+        height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+    }
+    """
+
     with gr.Blocks(
         fill_width=True,
         theme=gr.themes.Soft(
@@ -290,10 +302,10 @@ def get_leaderboard_app() -> gr.Blocks:
             )
 
         # 创建一个 iframe 组件
-        iframe = gr.HTML(visible=False)
+        iframe = gr.HTML(visible=False,elem_classes="toggle-block")
 
         # 创建一个容器来包装 benchmark 内容
-        with gr.Column(visible=True) as benchmark_content:
+        with gr.Column(visible=True,elem_classes="toggle-block") as benchmark_content:
             gr.Markdown(
                 """
             ## Embedding Leaderboard
