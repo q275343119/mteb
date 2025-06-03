@@ -84,6 +84,14 @@ BENCHMARK_ENTRIES = [
                 "MTEB(Europe, v1)",
                 "MTEB(Indic, v1)",
                 "MTEB(Scandinavian, v1)",
+
+            ]
+        ),
+    ),
+    MenuEntry(
+        "Language-specific",
+        mteb.get_benchmarks(
+            [
                 "MTEB(cmn, v1)",
                 "MTEB(deu, v1)",
                 "MTEB(fra, v1)",
@@ -94,20 +102,6 @@ BENCHMARK_ENTRIES = [
             ]
         ),
     ),
-    # MenuEntry(
-    #     "Language-specific",
-    #     mteb.get_benchmarks(
-    #         [
-    #             "MTEB(cmn, v1)",
-    #             "MTEB(deu, v1)",
-    #             "MTEB(fra, v1)",
-    #             "MTEB(jpn, v1)",
-    #             "MTEB(kor, v1)",
-    #             "MTEB(pol, v1)",
-    #             "MTEB(rus, v1)",
-    #         ]
-    #     ),
-    # ),
     # MenuEntry(
     #     "Miscellaneous",
     #     mteb.get_benchmarks(
