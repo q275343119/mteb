@@ -47,7 +47,7 @@ SECTION_ENTRIES = [
             {"name": "💰Finance", "url": "https://q275343119-streamlit-rteb.hf.space/finance?sider_bar_hidden=true"},
             {"name": "🇩🇪German", "url": "https://q275343119-streamlit-rteb.hf.space/german?sider_bar_hidden=true"},
             {"name": "🇫🇷French", "url": "https://q275343119-streamlit-rteb.hf.space/french?sider_bar_hidden=true"},
-            {"name": "Japanese", "url": "https://q275343119-streamlit-rteb.hf.space/japanese?sider_bar_hidden=true"},
+            {"name": "🇯🇵Japanese", "url": "https://q275343119-streamlit-rteb.hf.space/japanese?sider_bar_hidden=true"},
         ],
         False,
     ),
