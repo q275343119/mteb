@@ -61,5 +61,7 @@ with gr.Blocks(title="AG Grid via FastAPI") as demo:
     gr.Markdown("# AG Grid（通过 FastAPI 渲染，iframe方式）")
     gr.HTML(get_aggrid_iframe())
 
+
+
 if __name__ == "__main__":
     demo.launch()
