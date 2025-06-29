@@ -29,8 +29,7 @@ SECTION_ENTRIES = [
     SectionEntry(
         None,
         [
-            {"name": "Overall", "url": "https://q275343119-streamlit-rteb.hf.space/?sider_bar_hidden=true"},
-
+            {"name": "Overall", "url": "https://q275343119-streamlit-rteb.hf.space/?sider_bar_hidden=true&table_only=true"},
 
         ],
         False,
@@ -39,15 +38,22 @@ SECTION_ENTRIES = [
     SectionEntry(
         "Domain-Specific",
         [
-            {"name": "📜Legal", "url": "https://q275343119-streamlit-rteb.hf.space/legal?sider_bar_hidden=true"},
-            {"name": "🇬🇧English", "url": "https://q275343119-streamlit-rteb.hf.space/english?sider_bar_hidden=true"},
-            {"name": "💻Code", "url": "https://q275343119-streamlit-rteb.hf.space/code?sider_bar_hidden=true"},
+            {"name": "📜Legal",
+             "url": "https://q275343119-streamlit-rteb.hf.space/legal?sider_bar_hidden=true&table_only=true"},
+            {"name": "🇬🇧English",
+             "url": "https://q275343119-streamlit-rteb.hf.space/english?sider_bar_hidden=true&table_only=true"},
+            {"name": "💻Code",
+             "url": "https://q275343119-streamlit-rteb.hf.space/code?sider_bar_hidden=true&table_only=true"},
             {"name": "🏥Healthcare",
-             "url": "https://q275343119-streamlit-rteb.hf.space/healthcare?sider_bar_hidden=true"},
-            {"name": "💰Finance", "url": "https://q275343119-streamlit-rteb.hf.space/finance?sider_bar_hidden=true"},
-            {"name": "🇩🇪German", "url": "https://q275343119-streamlit-rteb.hf.space/german?sider_bar_hidden=true"},
-            {"name": "🇫🇷French", "url": "https://q275343119-streamlit-rteb.hf.space/french?sider_bar_hidden=true"},
-            {"name": "🇯🇵Japanese", "url": "https://q275343119-streamlit-rteb.hf.space/japanese?sider_bar_hidden=true"},
+             "url": "https://q275343119-streamlit-rteb.hf.space/healthcare?sider_bar_hidden=true&table_only=true"},
+            {"name": "💰Finance",
+             "url": "https://q275343119-streamlit-rteb.hf.space/finance?sider_bar_hidden=true&table_only=true"},
+            {"name": "🇩🇪German",
+             "url": "https://q275343119-streamlit-rteb.hf.space/german?sider_bar_hidden=true&table_only=true"},
+            {"name": "🇫🇷French",
+             "url": "https://q275343119-streamlit-rteb.hf.space/french?sider_bar_hidden=true&table_only=true"},
+            {"name": "🇯🇵Japanese",
+             "url": "https://q275343119-streamlit-rteb.hf.space/japanese?sider_bar_hidden=true&table_only=true"},
         ],
         False,
     ),
@@ -132,11 +138,11 @@ BENCHMARK_ENTRIES = [
 
 
 def _create_button(
-    i: int,
-    benchmark: Benchmark,
-    state: gr.State,
-    label_to_value: dict[str, str],
-    **kwargs,
+        i: int,
+        benchmark: Benchmark,
+        state: gr.State,
+        label_to_value: dict[str, str],
+        **kwargs,
 ):
     val = benchmark.name
     label = (
@@ -167,7 +173,7 @@ def _create_button(
 
 
 def make_selector(
-    entries: list[MenuEntry],
+        entries: list[MenuEntry],
 ) -> tuple[gr.State, gr.Column]:
     if not entries:
         raise ValueError("No entries were specified, can't build selector.")
@@ -195,10 +201,10 @@ def make_selector(
 
 
 def _create_section_button(
-    i: int,
-    item: dict[str, Any],
-    state: gr.State,
-    **kwargs,
+        i: int,
+        item: dict[str, Any],
+        state: gr.State,
+        **kwargs,
 ):
     button = gr.Button(
         item["name"],
@@ -223,11 +229,11 @@ def _create_section_button(
 
 
 def make_section_selector(
-    entries: list[SectionEntry],
+        entries: list[SectionEntry],
 ) -> tuple[gr.State, gr.Column, str]:
     if not entries:
         raise ValueError("No entries were specified, can't build selector.")
-    
+
     with gr.Column() as column:
         state = gr.State(None)
         i = 0

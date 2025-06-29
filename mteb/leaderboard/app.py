@@ -289,18 +289,19 @@ def get_leaderboard_app() -> gr.Blocks:
                 SECTION_ENTRIES
             )
 
-        # 创建一个 iframe 组件
-        iframe = gr.HTML(visible=False)
-
-        # 创建一个容器来包装 benchmark 内容
-        with gr.Column(visible=True) as benchmark_content:
-            gr.Markdown(
+        gr.Markdown(
                 """
             ## Embedding Leaderboard
 
             This leaderboard compares 100+ text and image embedding models across 1000+ languages. We refer to the publication of each selectable benchmark for details on metrics, languages, tasks, and task types. Anyone is welcome [to add a model](https://github.com/embeddings-benchmark/mteb/blob/main/docs/adding_a_model.md), [add benchmarks](https://github.com/embeddings-benchmark/mteb/blob/main/docs/adding_a_benchmark.md), [help us improve zero-shot annotations](https://github.com/embeddings-benchmark/mteb/blob/06489abca007261c7e6b11f36d4844c5ed5efdcb/mteb/models/bge_models.py#L91) or [propose other changes to the leaderboard](https://github.com/embeddings-benchmark/mteb/tree/main/mteb/leaderboard).
             """
             )
+        # 创建一个 iframe 组件
+        iframe = gr.HTML(visible=False)
+
+        # 创建一个容器来包装 benchmark 内容
+        with gr.Column(visible=True) as benchmark_content:
+
             gr.Markdown(
                 lambda name: f"<center> <h2> <b> {name} </b> </h2> </center><br>",
                 inputs=benchmark_select,
@@ -796,7 +797,7 @@ def get_leaderboard_app() -> gr.Blocks:
                 for item in entry.items:
                     if item["name"] == section_name:
                         return gr.HTML(
-                            value=f'<div style="height: 800px; overflow: hidden; position: relative;"><iframe src="{item["url"]}" width="100%" height="100%" frameborder="0" style="border: none; position: absolute; top: 0; left: 0;"></iframe></div>',
+                            value=f'<div style="min-height: 500px; overflow: hidden; position: relative;"><iframe src="{item["url"]}" width="100%" height="100%" frameborder="0" style="border: none; position: absolute; top: 0; left: 0;"></iframe></div>',
                             visible=True,
                         ), gr.Column(visible=False)
             return gr.HTML(visible=False), gr.Column(visible=True)
