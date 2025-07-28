@@ -5,7 +5,9 @@ from dataclasses import dataclass
 import gradio as gr
 
 import mteb
-from build.lib.mteb.benchmarks.benchmarks import MTEB_multilingual
+
+# from build.lib.mteb.benchmarks.benchmarks import MTEB_multilingual
+from mteb.benchmarks.benchmarks import MTEB_multilingual
 from mteb import Benchmark
 
 DEFAULT_BENCHMARK_NAME = MTEB_multilingual.name
@@ -17,6 +19,63 @@ class MenuEntry:
     benchmarks: list[Benchmark | MenuEntry]
     description: str | None = None
     open: bool = False
+
+
+def get_dynamic_domain_specific_benchmarks():
+    """
+    Mock function for dynamically loading domain-specific benchmarks.
+    This function can be replaced with actual logic to fetch benchmarks
+    from database, API, or other sources.
+
+    Returns:
+        list: List of Benchmark objects for domain-specific category
+    """
+    # Mock data - replace this with your actual logic
+    # 这里可以从数据库、API或其他来源获取benchmark信息
+    mock_benchmark_data = [
+        {
+            "name": "CustomDomain1-Benchmark",
+            "display_name": "Custom Domain 1",
+            "description": "A custom benchmark for domain 1",
+            "reference": "https://example.com/domain1",
+            "tasks": [
+                "AmazonPolarityClassification",
+                "Banking77Classification",
+            ],  # 使用现有的tasks
+            "icon": "https://github.com/lipis/flag-icons/raw/260c91531be024944c6514130c5defb2ebb02b7d/flags/4x3/us.svg",
+        },
+        {
+            "name": "CustomDomain2-Benchmark",
+            "display_name": "Custom Domain 2",
+            "description": "A custom benchmark for domain 2",
+            "reference": "https://example.com/domain2",
+            "tasks": ["ArxivClusteringP2P", "BiorxivClusteringS2S"],
+            "icon": "https://github.com/lipis/flag-icons/raw/260c91531be024944c6514130c5defb2ebb02b7d/flags/4x3/gb.svg",
+        },
+    ]
+
+    # 创建自定义Benchmark对象
+    custom_benchmarks = []
+    for benchmark_info in mock_benchmark_data:
+        try:
+            # 获取tasks
+            tasks = mteb.get_tasks(tasks=benchmark_info["tasks"])
+
+            # 创建Benchmark对象
+            custom_benchmark = Benchmark(
+                name=benchmark_info["name"],
+                display_name=benchmark_info["display_name"],
+                description=benchmark_info["description"],
+                reference=benchmark_info["reference"],
+                icon=benchmark_info["icon"],
+                tasks=tasks,
+            )
+            custom_benchmarks.append(custom_benchmark)
+        except Exception as e:
+            print(f"Failed to create benchmark {benchmark_info['name']}: {e}")
+            continue
+
+    return custom_benchmarks
 
 
 BENCHMARK_ENTRIES = [
@@ -85,6 +144,22 @@ BENCHMARK_ENTRIES = [
                         "RAR-b",
                     ]
                 ),
+            ),
+        ],
+    ),
+    # 新增的平级分类
+    MenuEntry(
+        name="Custom Benchmarks",
+        description="Custom benchmark categories with dynamic loading",
+        open=False,
+        benchmarks=[
+            # Overall分类（直接基准）
+            *mteb.get_benchmarks(
+                ["MTEB(Multilingual, v2)"]
+            ),  # 使用现有的作为Overall示例
+            # Domain-Specific分组（动态加载）
+            MenuEntry(
+                "Domain-Specific", get_dynamic_domain_specific_benchmarks(), open=False
             ),
         ],
     ),
