@@ -9,6 +9,7 @@ import mteb
 # from build.lib.mteb.benchmarks.benchmarks import MTEB_multilingual
 from mteb.benchmarks.benchmarks import MTEB_multilingual
 from mteb import Benchmark
+from mteb.leaderboard.rteb.benchmark import get_dynamic_domain_specific_benchmarks
 
 DEFAULT_BENCHMARK_NAME = MTEB_multilingual.name
 
@@ -21,142 +22,91 @@ class MenuEntry:
     open: bool = False
 
 
-def get_dynamic_domain_specific_benchmarks():
-    """
-    Mock function for dynamically loading domain-specific benchmarks.
-    This function can be replaced with actual logic to fetch benchmarks
-    from database, API, or other sources.
 
-    Returns:
-        list: List of Benchmark objects for domain-specific category
-    """
-    # Mock data - replace this with your actual logic
-    # 这里可以从数据库、API或其他来源获取benchmark信息
-    mock_benchmark_data = [
-        {
-            "name": "CustomDomain1-Benchmark",
-            "display_name": "Custom Domain 1",
-            "description": "A custom benchmark for domain 1",
-            "reference": "https://example.com/domain1",
-            "tasks": [
-                "AmazonPolarityClassification",
-                "Banking77Classification",
-            ],  # 使用现有的tasks
-            "icon": "https://github.com/lipis/flag-icons/raw/260c91531be024944c6514130c5defb2ebb02b7d/flags/4x3/us.svg",
-        },
-        {
-            "name": "CustomDomain2-Benchmark",
-            "display_name": "Custom Domain 2",
-            "description": "A custom benchmark for domain 2",
-            "reference": "https://example.com/domain2",
-            "tasks": ["ArxivClusteringP2P", "BiorxivClusteringS2S"],
-            "icon": "https://github.com/lipis/flag-icons/raw/260c91531be024944c6514130c5defb2ebb02b7d/flags/4x3/gb.svg",
-        },
-    ]
-
-    # 创建自定义Benchmark对象
-    custom_benchmarks = []
-    for benchmark_info in mock_benchmark_data:
-        try:
-            # 获取tasks
-            tasks = mteb.get_tasks(tasks=benchmark_info["tasks"])
-
-            # 创建Benchmark对象
-            custom_benchmark = Benchmark(
-                name=benchmark_info["name"],
-                display_name=benchmark_info["display_name"],
-                description=benchmark_info["description"],
-                reference=benchmark_info["reference"],
-                icon=benchmark_info["icon"],
-                tasks=tasks,
-            )
-            custom_benchmarks.append(custom_benchmark)
-        except Exception as e:
-            print(f"Failed to create benchmark {benchmark_info['name']}: {e}")
-            continue
-
-    return custom_benchmarks
 
 
 BENCHMARK_ENTRIES = [
     MenuEntry(
-        name="Select Benchmark",
+        name="General Purpose",
         description="",
         open=False,
         benchmarks=mteb.get_benchmarks(["MTEB(Multilingual, v2)", "MTEB(eng, v2)"])
-        + [
-            MenuEntry(
-                "Image",
-                mteb.get_benchmarks(
-                    [
-                        "MIEB(Multilingual)",
-                        "MIEB(eng)",
-                        "MIEB(lite)",
-                        "MIEB(Img)",
-                        "VisualDocumentRetrieval",
-                    ]
-                ),
-            ),
-            MenuEntry(
-                "Domain-Specific",
-                mteb.get_benchmarks(
-                    [
-                        "MTEB(Code, v1)",
-                        "MTEB(Law, v1)",
-                        "MTEB(Medical, v1)",
-                        "ChemTEB",
-                    ]
-                ),
-            ),
-            MenuEntry(
-                "Language-specific",
-                mteb.get_benchmarks(
-                    [
-                        "MTEB(Europe, v1)",
-                        "MTEB(Indic, v1)",
-                        "MTEB(Scandinavian, v1)",
-                        "MTEB(cmn, v1)",
-                        "MTEB(deu, v1)",
-                        "MTEB(fra, v1)",
-                        "MTEB(jpn, v1)",
-                        "MTEB(kor, v1)",
-                        "MTEB(pol, v1)",
-                        "MTEB(rus, v1)",
-                        "MTEB(fas, v1)",
-                    ]
-                )
-                + [MenuEntry("Other", mteb.get_benchmarks(["MTEB(eng, v1)"]))],
-            ),
-            MenuEntry(
-                "Miscellaneous",  # All of these are retrieval benchmarks
-                mteb.get_benchmarks(
-                    [
-                        "BEIR",
-                        "BEIR-NL",
-                        "NanoBEIR",
-                        "BRIGHT",
-                        "BRIGHT (long)",
-                        "BuiltBench(eng)",
-                        "CoIR",
-                        "FollowIR",
-                        "LongEmbed",
-                        "MINERSBitextMining",
-                        "RAR-b",
-                    ]
-                ),
-            ),
-        ],
+                   + [
+                       MenuEntry(
+                           "Image",
+                           mteb.get_benchmarks(
+                               [
+                                   "MIEB(Multilingual)",
+                                   "MIEB(eng)",
+                                   "MIEB(lite)",
+                                   "MIEB(Img)",
+                                   "VisualDocumentRetrieval",
+                               ]
+                           ),
+                       ),
+                       MenuEntry(
+                           "Domain-Specific",
+                           mteb.get_benchmarks(
+                               [
+                                   "MTEB(Code, v1)",
+                                   "MTEB(Law, v1)",
+                                   "MTEB(Medical, v1)",
+                                   "ChemTEB",
+                               ]
+                           ),
+                       ),
+                       MenuEntry(
+                           "Language-specific",
+                           mteb.get_benchmarks(
+                               [
+                                   "MTEB(Europe, v1)",
+                                   "MTEB(Indic, v1)",
+                                   "MTEB(Scandinavian, v1)",
+                                   "MTEB(cmn, v1)",
+                                   "MTEB(deu, v1)",
+                                   "MTEB(fra, v1)",
+                                   "MTEB(jpn, v1)",
+                                   "MTEB(kor, v1)",
+                                   "MTEB(pol, v1)",
+                                   "MTEB(rus, v1)",
+                                   "MTEB(fas, v1)",
+                               ]
+                           )
+                           + [MenuEntry("Other", mteb.get_benchmarks(["MTEB(eng, v1)"]))],
+                       ),
+                       MenuEntry(
+                           "Miscellaneous",  # All of these are retrieval benchmarks
+                           mteb.get_benchmarks(
+                               [
+                                   "BEIR",
+                                   "BEIR-NL",
+                                   "NanoBEIR",
+                                   "BRIGHT",
+                                   "BRIGHT (long)",
+                                   "BuiltBench(eng)",
+                                   "CoIR",
+                                   "FollowIR",
+                                   "LongEmbed",
+                                   "MINERSBitextMining",
+                                   "RAR-b",
+                               ]
+                           ),
+                       ),
+                   ],
     ),
     # 新增的平级分类
     MenuEntry(
-        name="Custom Benchmarks",
-        description="Custom benchmark categories with dynamic loading",
+        name="Retrieval",
+        description=None,
         open=False,
         benchmarks=[
             # Overall分类（直接基准）
-            *mteb.get_benchmarks(
-                ["MTEB(Multilingual, v2)"]
-            ),  # 使用现有的作为Overall示例
+            Benchmark(
+                name="Overall",
+                display_name="Overall",
+                tasks=[],
+            ),
+             # 使用现有的作为Overall示例
             # Domain-Specific分组（动态加载）
             MenuEntry(
                 "Domain-Specific", get_dynamic_domain_specific_benchmarks(), open=False
@@ -167,11 +117,11 @@ BENCHMARK_ENTRIES = [
 
 
 def _create_button(
-    i: int,
-    benchmark: Benchmark,
-    state: gr.State,
-    label_to_value: dict[str, str],
-    **kwargs,
+        i: int,
+        benchmark: Benchmark,
+        state: gr.State,
+        label_to_value: dict[str, str],
+        **kwargs,
 ):
     val = benchmark.name
     label = (
@@ -225,10 +175,10 @@ def make_selector(entries: list[MenuEntry]) -> tuple[gr.State, gr.Column]:
 
 
 def _render_category(
-    entry: MenuEntry,
-    state: gr.State,
-    label_to_value: dict,
-    button_counter: int,
+        entry: MenuEntry,
+        state: gr.State,
+        label_to_value: dict,
+        button_counter: int,
 ) -> int:
     gr.Markdown(f"## {entry.name}")
     if entry.description:
@@ -243,11 +193,11 @@ def _render_category(
 
 
 def _render_benchmark_item(
-    item: Benchmark | MenuEntry,
-    state: gr.State,
-    label_to_value: dict,
-    button_counter: int,
-    level: int,
+        item: Benchmark | MenuEntry,
+        state: gr.State,
+        label_to_value: dict,
+        button_counter: int,
+        level: int,
 ) -> int:
     if isinstance(item, Benchmark):
         size = "md" if level == 0 else "sm"
