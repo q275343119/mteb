@@ -123,7 +123,7 @@ def table_area(group_name, data_engine=None):
 
     df.rename(columns=rename_map, inplace=True)
     df["Number of Parameters"] = df["Number of Parameters"].apply(lambda x: unit_change(x))
-    df.map(lambda x: "UnKnown" if pd.isnull(x) else x)
+    df.map(lambda x: "UnKnown" if pd.isnull(x) else x, inplace=True)
     return df[list(rename_map.values())]
 
 
