@@ -5,6 +5,8 @@
 # @Description:
 import io
 
+import pandas as pd
+
 from mteb.leaderboard.rteb.data_engine import DataEngine
 
 COLUMNS = ['model_name',
@@ -21,6 +23,18 @@ def get_closed_dataset(data_engine):
         if result.get("is_closed"):
             closed_list.append(result.get("dataset_name"))
     return closed_list
+
+
+def unit_change(x):
+    """
+    unit change
+    Returns:
+
+    """
+    if x >= 1e9: return f"{x / 1e9:.2f}B"
+    if x >= 1e6: return f"{x / 1e6:.2f}M"
+    if x >= 1e3: return f"{x / 1e3:.2f}K"
+    return x
 
 
 def table_area(group_name, data_engine=None):
@@ -108,13 +122,15 @@ def table_area(group_name, data_engine=None):
         }
 
     df.rename(columns=rename_map, inplace=True)
-
+    df["Number of Parameters"] = df["Number of Parameters"].apply(lambda x: unit_change(x))
+    df.map(lambda x: "UnKnown" if pd.isnull(x) else x)
     return df[list(rename_map.values())]
+
 
 if __name__ == '__main__':
     data_engine = DataEngine()
-    df = table_area("Overall",data_engine)
+    df = table_area("Overall", data_engine)
     print(df)
 
-    df = table_area("Code",data_engine)
+    df = table_area("Code", data_engine)
     print(df)
