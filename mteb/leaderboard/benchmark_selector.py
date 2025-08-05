@@ -102,7 +102,7 @@ BENCHMARK_ENTRIES = [
         benchmarks=[
             # Overall分类（直接基准）
             Benchmark(
-                name="Overall",
+                name="RTEB (Overall)",
                 display_name="Overall",
                 tasks=[],
             ),

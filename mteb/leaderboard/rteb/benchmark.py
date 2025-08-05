@@ -27,7 +27,7 @@ def get_dynamic_domain_specific_benchmarks(specific_type: str = "Domain-Specific
 
             # 创建Benchmark对象
             custom_benchmark = Benchmark(
-                name=benchmark_info,
+                name=f"RTEB ({benchmark_info})",
                 display_name=LEADERBOARD_ICON_MAP.get(benchmark_info, "") + benchmark_info,
                 tasks=[],
             )
