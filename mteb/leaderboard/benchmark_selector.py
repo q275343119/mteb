@@ -109,7 +109,10 @@ BENCHMARK_ENTRIES = [
              # 使用现有的作为Overall示例
             # Domain-Specific分组（动态加载）
             MenuEntry(
-                "Domain-Specific", get_dynamic_domain_specific_benchmarks(), open=False
+                "Domain-Specific", get_dynamic_domain_specific_benchmarks("Domain-Specific"), open=False
+            ),
+            MenuEntry(
+                "Language-specific", get_dynamic_domain_specific_benchmarks("Language-specific"), open=False
             ),
         ],
     ),
