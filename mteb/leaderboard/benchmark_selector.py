@@ -96,7 +96,7 @@ BENCHMARK_ENTRIES = [
     ),
     # 新增的平级分类
     MenuEntry(
-        name="Retrieval",
+        name="RTEB (Retrieval)",
         description=None,
         open=False,
         benchmarks=[
