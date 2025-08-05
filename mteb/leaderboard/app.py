@@ -30,7 +30,6 @@ from mteb.leaderboard.text_segments import ACKNOWLEDGEMENT, FAQ
 
 logger = logging.getLogger(__name__)
 
-
 LANGUAGE: list[str] = list({l for t in mteb.get_tasks() for l in t.metadata.languages})
 ALL_MODELS = {meta.name for meta in mteb.get_model_metas()}
 
@@ -88,7 +87,7 @@ def update_citation(benchmark_name: str) -> str:
 
 
 def update_description(
-    benchmark_name: str, languages: list[str], task_types: list[str], domains: list[str]
+        benchmark_name: str, languages: list[str], task_types: list[str], domains: list[str]
 ) -> str:
     # 特殊处理Retrieval组的benchmark
     if is_retrieval_benchmark(benchmark_name):
@@ -163,13 +162,13 @@ MIN_MODEL_SIZE, MAX_MODEL_SIZE = 0, 100_000
 
 
 def filter_models(
-    model_names: list[str],
-    task_select: list[str],
-    availability: bool | None,
-    compatibility: list[str],
-    instructions: bool | None,
-    max_model_size: int,
-    zero_shot_setting: Literal["only_zero_shot", "allow_all", "remove_unknown"],
+        model_names: list[str],
+        task_select: list[str],
+        availability: bool | None,
+        compatibility: list[str],
+        instructions: bool | None,
+        max_model_size: int,
+        zero_shot_setting: Literal["only_zero_shot", "allow_all", "remove_unknown"],
 ):
     lower, upper = 0, max_model_size
     # Setting to None, when the user doesn't specify anything
@@ -206,7 +205,7 @@ def filter_models(
 def is_retrieval_benchmark(benchmark_name: str) -> bool:
     """检查是否为Retrieval组的benchmark"""
     # 静态定义的Retrieval benchmark
-    static_retrieval_benchmarks = ["Overall"]
+    static_retrieval_benchmarks = ["RTEB (Overall)"]
 
     # 动态获取的Retrieval benchmark
     try:
@@ -223,7 +222,7 @@ def is_retrieval_benchmark(benchmark_name: str) -> bool:
 
     # 合并所有Retrieval benchmark
     all_retrieval_benchmarks = (
-        static_retrieval_benchmarks + dynamic_retrieval_benchmarks
+            static_retrieval_benchmarks + dynamic_retrieval_benchmarks
     )
 
     return benchmark_name in all_retrieval_benchmarks
@@ -268,7 +267,8 @@ def get_retrieval_placeholder_content() -> str:
 def get_retrieval_mock_data(benchmark_name: str) -> pd.DataFrame:
     """根据选择的benchmark生成mock数据"""
     data_engine = DataEngine()
-    return table_area(benchmark_name,data_engine)
+    group_name = benchmark_name.replace("RTEB", "").strip()[1:-1]
+    return table_area(group_name, data_engine)
 
 
 def safe_get_benchmark(benchmark_name: str):
@@ -356,17 +356,17 @@ def get_leaderboard_app() -> gr.Blocks:
     """
 
     with gr.Blocks(
-        fill_width=True,
-        theme=gr.themes.Soft(
-            font=[gr.themes.GoogleFont("Roboto Mono"), "Arial", "sans-serif"],
-        ),
-        head=head,
+            fill_width=True,
+            theme=gr.themes.Soft(
+                font=[gr.themes.GoogleFont("Roboto Mono"), "Arial", "sans-serif"],
+            ),
+            head=head,
     ) as demo:
         with gr.Sidebar(
-            position="left",
-            label="Benchmark Selection and Customization",
-            visible=True,
-            width="18%",
+                position="left",
+                label="Benchmark Selection and Customization",
+                visible=True,
+                width="18%",
         ):
             benchmark_select, column = make_selector(BENCHMARK_ENTRIES)
 
@@ -503,8 +503,8 @@ def get_leaderboard_app() -> gr.Blocks:
                 )
 
                 with gr.Accordion(
-                    "Frequently Asked Questions",
-                    open=False,
+                        "Frequently Asked Questions",
+                        open=False,
                 ):
                     gr.Markdown(FAQ)
             with gr.Tab("Performance per task"):
@@ -518,13 +518,15 @@ def get_leaderboard_app() -> gr.Blocks:
 
         # Retrieval组的内容
         retrieval_placeholder = gr.DataFrame(
-            value=get_retrieval_mock_data("Overall"),
+            value=get_retrieval_mock_data("RTEB (Overall)"),
             visible=False,
             show_copy_button=True,
             show_fullscreen_button=True,
             show_search="filter",
             pinned_columns=1
         )
+        with gr.Accordion("Share this benchmark:", open=False, visible=False) as retrieval_accordion:
+            gr.Markdown(produce_benchmark_link, inputs=[benchmark_select])
 
         # 下部分：Acknowledgment
         gr.Markdown(ACKNOWLEDGEMENT, elem_id="ack_markdown")
@@ -540,15 +542,15 @@ def get_leaderboard_app() -> gr.Blocks:
                 mock_data = get_retrieval_mock_data(benchmark_name)
                 return gr.update(visible=False), gr.update(
                     value=mock_data, visible=True
-                )
+                ), gr.update(visible=True)
             else:
                 # 选择General Purpose组时，显示中间内容，隐藏DataFrame
-                return gr.update(visible=True), gr.update(visible=False)
+                return gr.update(visible=True), gr.update(visible=False), gr.update(visible=False)
 
         benchmark_select.change(
             update_content_visibility,
             inputs=[benchmark_select],
-            outputs=[middle_content, retrieval_placeholder],
+            outputs=[middle_content, retrieval_placeholder, retrieval_accordion],
         )
 
         @cachetools.cached(
@@ -643,21 +645,21 @@ def get_leaderboard_app() -> gr.Blocks:
         @cachetools.cached(
             cache={},
             key=lambda benchmark_name,
-            type_select,
-            domain_select,
-            lang_select,
-            modality_select: hash(
+                       type_select,
+                       domain_select,
+                       lang_select,
+                       modality_select: hash(
                 (
-                    hash(benchmark_name),
-                    hash(tuple(type_select)),
-                    hash(tuple(domain_select)),
-                    hash(tuple(lang_select)),
-                    hash(tuple(modality_select)),
+                        hash(benchmark_name),
+                        hash(tuple(type_select)),
+                        hash(tuple(domain_select)),
+                        hash(tuple(lang_select)),
+                        hash(tuple(modality_select)),
                 )
             ),
         )
         def update_task_list(
-            benchmark_name, type_select, domain_select, lang_select, modality_select
+                benchmark_name, type_select, domain_select, lang_select, modality_select
         ):
             if not len(lang_select):
                 return []
@@ -673,15 +675,15 @@ def get_leaderboard_app() -> gr.Blocks:
                 if task.metadata.type not in type_select:
                     continue
                 if task.metadata.domains is not None and not (
-                    set(task.metadata.domains) & set(domain_select)
+                        set(task.metadata.domains) & set(domain_select)
                 ):
                     continue
                 if task.languages is not None and not (
-                    set(task.languages) & set(lang_select)
+                        set(task.languages) & set(lang_select)
                 ):
                     continue
                 if task.metadata.modalities and not (
-                    set(task.metadata.modalities) & set(modality_select)
+                        set(task.metadata.modalities) & set(modality_select)
                 ):
                     continue
                 tasks_to_keep.append(task.metadata.name)
@@ -737,31 +739,31 @@ def get_leaderboard_app() -> gr.Blocks:
         @cachetools.cached(
             cache={},
             key=lambda scores,
-            tasks,
-            availability,
-            compatibility,
-            instructions,
-            max_model_size,
-            zero_shot: hash(
+                       tasks,
+                       availability,
+                       compatibility,
+                       instructions,
+                       max_model_size,
+                       zero_shot: hash(
                 (
-                    id(scores),
-                    hash(tuple(tasks)),
-                    hash(availability),
-                    hash(tuple(compatibility)),
-                    hash(instructions),
-                    hash(max_model_size),
-                    hash(zero_shot),
+                        id(scores),
+                        hash(tuple(tasks)),
+                        hash(availability),
+                        hash(tuple(compatibility)),
+                        hash(instructions),
+                        hash(max_model_size),
+                        hash(zero_shot),
                 )
             ),
         )
         def update_models(
-            scores: list[dict],
-            tasks: list[str],
-            availability: bool | None,
-            compatibility: list[str],
-            instructions: bool | None,
-            max_model_size: int,
-            zero_shot: Literal["allow_all", "remove_unknown", "only_zero_shot"],
+                scores: list[dict],
+                tasks: list[str],
+                availability: bool | None,
+                compatibility: list[str],
+                instructions: bool | None,
+                max_model_size: int,
+                zero_shot: Literal["allow_all", "remove_unknown", "only_zero_shot"],
         ):
             start_time = time.time()
             model_names = list({entry["model_name"] for entry in scores})
@@ -877,18 +879,18 @@ def get_leaderboard_app() -> gr.Blocks:
             cache={},
             key=lambda scores, tasks, models_to_keep, benchmark_name: hash(
                 (
-                    id(scores),
-                    hash(tuple(tasks)),
-                    id(models_to_keep),
-                    hash(benchmark_name),
+                        id(scores),
+                        hash(tuple(tasks)),
+                        id(models_to_keep),
+                        hash(benchmark_name),
                 )
             ),
         )
         def update_tables(
-            scores,
-            tasks,
-            models_to_keep,
-            benchmark_name: str,
+                scores,
+                tasks,
+                models_to_keep,
+                benchmark_name: str,
         ):
             start_time = time.time()
             # 特殊处理Retrieval组的benchmark
@@ -909,7 +911,7 @@ def get_leaderboard_app() -> gr.Blocks:
                     if entry["task_name"] not in tasks:
                         continue
                     if (models_to_keep is not None) and (
-                        entry["model_name"] not in models_to_keep
+                            entry["model_name"] not in models_to_keep
                     ):
                         continue
                     filtered_scores.append(entry)

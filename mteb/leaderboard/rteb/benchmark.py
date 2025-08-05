@@ -3,7 +3,7 @@ from mteb.leaderboard.rteb.constant import LEADERBOARD_ICON_MAP
 from mteb.leaderboard.rteb.data_engine import DataEngine
 
 
-def get_dynamic_domain_specific_benchmarks(specific_type: str = "Domain-Specific"):
+def get_dynamic_domain_specific_benchmarks(specific_type: str = "ALL"):
     """
     Mock function for dynamically loading domain-specific benchmarks.
     This function can be replaced with actual logic to fetch benchmarks
@@ -15,6 +15,7 @@ def get_dynamic_domain_specific_benchmarks(specific_type: str = "Domain-Specific
     data_engine = DataEngine()
     language_tuple = ("German", "English", "French", "Japanese")
     benchmark_list = [d.get("name").capitalize() for d in data_engine.datasets if d.get("name") != "text"]
+
     if specific_type == "Domain-Specific":
         benchmark_list = list(filter(lambda x: x not in language_tuple, benchmark_list))
     elif specific_type == "Language-specific":
