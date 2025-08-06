@@ -24,7 +24,7 @@ from mteb.leaderboard.benchmark_selector import (
 )
 from mteb.leaderboard.figures import performance_size_plot, radar_chart
 from mteb.leaderboard.rteb.data_engine import DataEngine
-from mteb.leaderboard.rteb.data_page import table_area
+from mteb.leaderboard.rteb.data_page import rteb_table_data
 from mteb.leaderboard.table import create_tables
 from mteb.leaderboard.text_segments import ACKNOWLEDGEMENT, FAQ
 
@@ -91,7 +91,13 @@ def update_description(
 ) -> str:
     # 特殊处理Retrieval组的benchmark
     if is_retrieval_benchmark(benchmark_name):
-        return "Retrieval benchmark - 功能开发中..."
+        # TODO: 动态获取
+        description = "Retrieval benchmark"
+        description += f" - **Number of languages**: {666}\n"
+        description += f" - **Number of tasks**: {666}\n"
+        description += f" - **Number of task types**: {666}\n"
+        description += f" - **Number of domains**: {666}\n"
+        return description
 
     benchmark = safe_get_benchmark(benchmark_name)
     if benchmark is None:
@@ -201,13 +207,9 @@ def filter_models(
         models_to_keep.add(model_meta.name)
     return list(models_to_keep)
 
-
-def is_retrieval_benchmark(benchmark_name: str) -> bool:
-    """检查是否为Retrieval组的benchmark"""
+def get_retrieval_benchmarks():
     # 静态定义的Retrieval benchmark
     static_retrieval_benchmarks = ["RTEB (Overall)"]
-
-    # 动态获取的Retrieval benchmark
     try:
         from mteb.leaderboard.rteb.benchmark import (
             get_dynamic_domain_specific_benchmarks,
@@ -219,56 +221,45 @@ def is_retrieval_benchmark(benchmark_name: str) -> bool:
         ]
     except Exception:
         dynamic_retrieval_benchmarks = []
-
     # 合并所有Retrieval benchmark
     all_retrieval_benchmarks = (
             static_retrieval_benchmarks + dynamic_retrieval_benchmarks
     )
 
+    return all_retrieval_benchmarks
+
+def is_retrieval_benchmark(benchmark_name: str) -> bool:
+    """检查是否为Retrieval组的benchmark"""
+
+    # 合并所有Retrieval benchmark
+    all_retrieval_benchmarks = get_retrieval_benchmarks()
+
     return benchmark_name in all_retrieval_benchmarks
 
 
-def get_retrieval_placeholder_content() -> str:
-    """获取Retrieval组的占位内容"""
-    return """
-# Retrieval Benchmark
 
-## 功能开发中...
-
-这里是Retrieval benchmark的占位内容。该功能正在开发中，将提供：
-
-- **检索性能评估**: 评估模型在信息检索任务中的表现
-- **多语言检索**: 支持多种语言的检索任务
-- **领域特定检索**: 针对特定领域的检索优化
-- **实时检索**: 支持实时检索性能测试
-
-### 即将推出的功能
-
-1. **检索准确性指标**
-   - Precision@K
-   - Recall@K
-   - NDCG@K
-   - MAP
-
-2. **检索效率指标**
-   - 查询响应时间
-   - 内存使用量
-   - 索引构建时间
-
-3. **可视化组件**
-   - 检索性能对比图
-   - 查询-文档相关性热力图
-   - 检索结果分布图
-
-敬请期待更多功能！
-"""
-
-
-def get_retrieval_mock_data(benchmark_name: str) -> pd.DataFrame:
+def get_retrieval_table(benchmark_name: str) -> tuple[gr.DataFrame, gr.DataFrame]:
     """根据选择的benchmark生成mock数据"""
     data_engine = DataEngine()
     group_name = benchmark_name.replace("RTEB", "").strip()[1:-1]
-    return table_area(group_name, data_engine)
+    dt_summary,df_detail = rteb_table_data(group_name, data_engine)
+    summary = gr.DataFrame(
+            value=dt_summary,
+            visible=True,
+            show_copy_button=True,
+            show_fullscreen_button=True,
+            show_search="filter",
+            pinned_columns=1
+        )
+    detail = gr.DataFrame(
+        value=df_detail,
+        visible=True,
+        show_copy_button=True,
+        show_fullscreen_button=True,
+        show_search="filter",
+        pinned_columns=1
+    )
+    return summary,detail
 
 
 def safe_get_benchmark(benchmark_name: str):
@@ -386,147 +377,133 @@ def get_leaderboard_app() -> gr.Blocks:
         scores = gr.State(default_scores)
         models = gr.State(filtered_models)
 
-        # 中部分：内容区域（根据benchmark类型显示不同内容）
-        # 使用gr.Column包装整个中间部分内容
-        with gr.Column(visible=True) as middle_content:
-            with gr.Row():
-                with gr.Column(scale=1):
-                    description = gr.Markdown(  # noqa: F841
-                        update_description,
-                        inputs=[
-                            benchmark_select,
-                            lang_select,
-                            type_select,
-                            domain_select,
-                        ],
+        with gr.Row():
+            with gr.Column(scale=1):
+                description = gr.Markdown(  # noqa: F841
+                    update_description,
+                    inputs=[
+                        benchmark_select,
+                        lang_select,
+                        type_select,
+                        domain_select,
+                    ],
+                )
+                with gr.Accordion("Cite this benchmark:", open=False):
+                    citation = gr.Markdown(
+                        update_citation, inputs=[benchmark_select]
+                    )  # noqa: F841
+                with gr.Accordion("Share this benchmark:", open=False):
+                    gr.Markdown(produce_benchmark_link, inputs=[benchmark_select])
+            with gr.Column(scale=2) as performance_plots:
+                with gr.Tab("Performance per Model Size"):
+                    plot = gr.Plot(performance_size_plot, inputs=[summary_table])  # noqa: F841
+                    gr.Markdown(
+                        "*We only display models that have been run on all tasks in the benchmark*"
                     )
-                    with gr.Accordion("Cite this benchmark:", open=False):
-                        citation = gr.Markdown(
-                            update_citation, inputs=[benchmark_select]
-                        )  # noqa: F841
-                    with gr.Accordion("Share this benchmark:", open=False):
-                        gr.Markdown(produce_benchmark_link, inputs=[benchmark_select])
-                with gr.Column(scale=2):
-                    with gr.Tab("Performance per Model Size"):
-                        plot = gr.Plot(performance_size_plot, inputs=[summary_table])  # noqa: F841
-                        gr.Markdown(
-                            "*We only display models that have been run on all tasks in the benchmark*"
+                with gr.Tab("Performance per Task Type (Radar Chart)"):
+                    radar_plot = gr.Plot(radar_chart, inputs=[summary_table])  # noqa: F841
+                    gr.Markdown(
+                        "*We only display models that have been run on all task types in the benchmark*"
+                    )
+
+        with gr.Accordion("Customize this Benchmark", open=False):
+            with gr.Column():
+                with gr.Row():
+                    type_select.render()
+                with gr.Row():
+                    domain_select.render()
+                with gr.Row():
+                    modality_select.render()
+                with gr.Row(elem_classes="overflow-y-scroll max-h-80"):
+                    lang_select.render()
+                with gr.Row(elem_classes="overflow-y-scroll max-h-80"):
+                    task_select.render()
+
+        with gr.Accordion("Advanced Model Filters", open=False):
+            with gr.Group():
+                with gr.Row(elem_classes=""):
+                    with gr.Column():
+                        compatibility = gr.CheckboxGroup(
+                            [
+                                (
+                                    "Should be sentence-transformers compatible",
+                                    "Sentence Transformers",
+                                )
+                            ],
+                            value=[],
+                            label="Compatibility",
+                            interactive=True,
                         )
-                    with gr.Tab("Performance per Task Type (Radar Chart)"):
-                        radar_plot = gr.Plot(radar_chart, inputs=[summary_table])  # noqa: F841
-                        gr.Markdown(
-                            "*We only display models that have been run on all task types in the benchmark*"
+                        availability = gr.Radio(
+                            [
+                                ("Only Open", True),
+                                ("Only Proprietary", False),
+                                ("Both", None),
+                            ],
+                            value=None,
+                            label="Availability",
+                            interactive=True,
+                        )
+                        instructions = gr.Radio(
+                            [
+                                ("Only Instruction-tuned", True),
+                                ("Only non-instruction", False),
+                                ("Both", None),
+                            ],
+                            value=None,
+                            label="Instructions",
+                            interactive=True,
+                        )
+                    with gr.Column():
+                        zero_shot = gr.Radio(
+                            [
+                                (
+                                    "Only Zero-shot",
+                                    "only_zero_shot",
+                                ),
+                                ("Remove Unknown", "remove_unknown"),
+                                ("Allow All", "allow_all"),
+                            ],
+                            value="allow_all",
+                            label="Zero-shot",
+                            interactive=True,
                         )
 
-            with gr.Accordion("Customize this Benchmark", open=False):
-                with gr.Column():
-                    with gr.Row():
-                        type_select.render()
-                    with gr.Row():
-                        domain_select.render()
-                    with gr.Row():
-                        modality_select.render()
-                    with gr.Row(elem_classes="overflow-y-scroll max-h-80"):
-                        lang_select.render()
-                    with gr.Row(elem_classes="overflow-y-scroll max-h-80"):
-                        task_select.render()
+                        max_model_size = gr.Radio(
+                            [
+                                ("<100M", 100),
+                                ("<500M", 500),
+                                ("<1B", 1000),
+                                ("<5B", 5000),
+                                ("<10B", 10000),
+                                (">10B", MAX_MODEL_SIZE),
+                            ],
+                            value=MAX_MODEL_SIZE,
+                            label="Model Parameters",
+                            interactive=True,
+                        )
 
-            with gr.Accordion("Advanced Model Filters", open=False):
-                with gr.Group():
-                    with gr.Row(elem_classes=""):
-                        with gr.Column():
-                            compatibility = gr.CheckboxGroup(
-                                [
-                                    (
-                                        "Should be sentence-transformers compatible",
-                                        "Sentence Transformers",
-                                    )
-                                ],
-                                value=[],
-                                label="Compatibility",
-                                interactive=True,
-                            )
-                            availability = gr.Radio(
-                                [
-                                    ("Only Open", True),
-                                    ("Only Proprietary", False),
-                                    ("Both", None),
-                                ],
-                                value=None,
-                                label="Availability",
-                                interactive=True,
-                            )
-                            instructions = gr.Radio(
-                                [
-                                    ("Only Instruction-tuned", True),
-                                    ("Only non-instruction", False),
-                                    ("Both", None),
-                                ],
-                                value=None,
-                                label="Instructions",
-                                interactive=True,
-                            )
-                        with gr.Column():
-                            zero_shot = gr.Radio(
-                                [
-                                    (
-                                        "Only Zero-shot",
-                                        "only_zero_shot",
-                                    ),
-                                    ("Remove Unknown", "remove_unknown"),
-                                    ("Allow All", "allow_all"),
-                                ],
-                                value="allow_all",
-                                label="Zero-shot",
-                                interactive=True,
-                            )
+        with gr.Tab("Summary"):
+            summary_table.render()
+            download_summary = gr.DownloadButton("Download Table")
+            download_summary.click(
+                download_table, inputs=[summary_table], outputs=[download_summary]
+            )
 
-                            max_model_size = gr.Radio(
-                                [
-                                    ("<100M", 100),
-                                    ("<500M", 500),
-                                    ("<1B", 1000),
-                                    ("<5B", 5000),
-                                    ("<10B", 10000),
-                                    (">10B", MAX_MODEL_SIZE),
-                                ],
-                                value=MAX_MODEL_SIZE,
-                                label="Model Parameters",
-                                interactive=True,
-                            )
+            with gr.Accordion(
+                    "Frequently Asked Questions",
+                    open=False,
+            ):
+                gr.Markdown(FAQ)
+        with gr.Tab("Performance per task"):
+            per_task_table.render()
+            download_per_task = gr.DownloadButton("Download Table")
+            download_per_task.click(
+                download_table, inputs=[per_task_table], outputs=[download_per_task]
+            )
+        with gr.Tab("Task information"):
+            task_info_table = gr.DataFrame(update_task_info, inputs=[task_select])  # noqa: F841
 
-            with gr.Tab("Summary"):
-                summary_table.render()
-                download_summary = gr.DownloadButton("Download Table")
-                download_summary.click(
-                    download_table, inputs=[summary_table], outputs=[download_summary]
-                )
-
-                with gr.Accordion(
-                        "Frequently Asked Questions",
-                        open=False,
-                ):
-                    gr.Markdown(FAQ)
-            with gr.Tab("Performance per task"):
-                per_task_table.render()
-                download_per_task = gr.DownloadButton("Download Table")
-                download_per_task.click(
-                    download_table, inputs=[per_task_table], outputs=[download_per_task]
-                )
-            with gr.Tab("Task information"):
-                task_info_table = gr.DataFrame(update_task_info, inputs=[task_select])  # noqa: F841
-
-        # Retrieval组的内容
-        retrieval_placeholder = gr.DataFrame(
-            value=get_retrieval_mock_data("RTEB (Overall)"),
-            visible=False,
-            show_copy_button=True,
-            show_fullscreen_button=True,
-            show_search="filter",
-            pinned_columns=1
-        )
-        with gr.Accordion("Share this benchmark:", open=False, visible=False) as retrieval_accordion:
-            gr.Markdown(produce_benchmark_link, inputs=[benchmark_select])
 
         # 下部分：Acknowledgment
         gr.Markdown(ACKNOWLEDGEMENT, elem_id="ack_markdown")
@@ -537,20 +514,19 @@ def get_leaderboard_app() -> gr.Blocks:
         # 根据benchmark类型切换显示内容
         def update_content_visibility(benchmark_name):
             is_retrieval = is_retrieval_benchmark(benchmark_name)
+
             if is_retrieval:
-                # 选择Retrieval组时，隐藏中间内容，显示DataFrame
-                mock_data = get_retrieval_mock_data(benchmark_name)
-                return gr.update(visible=False), gr.update(
-                    value=mock_data, visible=True
-                ), gr.update(visible=True)
+                summary, per_task = get_retrieval_table(benchmark_name)
+
+                return gr.update(visible=False),summary, per_task
             else:
                 # 选择General Purpose组时，显示中间内容，隐藏DataFrame
-                return gr.update(visible=True), gr.update(visible=False), gr.update(visible=False)
+                return gr.update(visible=True),gr.update(visible=True),gr.update(visible=True)
 
         benchmark_select.change(
             update_content_visibility,
             inputs=[benchmark_select],
-            outputs=[middle_content, retrieval_placeholder, retrieval_accordion],
+            outputs=[performance_plots,summary_table, per_task_table],
         )
 
         @cachetools.cached(
@@ -892,12 +868,13 @@ def get_leaderboard_app() -> gr.Blocks:
                 models_to_keep,
                 benchmark_name: str,
         ):
+
+
             start_time = time.time()
             # 特殊处理Retrieval组的benchmark
             if is_retrieval_benchmark(benchmark_name):
-                # 返回空的表格数据
-                empty_summary, empty_per_task = create_tables([])
-                return empty_summary, empty_per_task
+                summary, per_task = get_retrieval_table(benchmark_name)
+                return summary, per_task
 
             tasks = set(tasks)
             benchmark = safe_get_benchmark(benchmark_name)
@@ -968,6 +945,8 @@ def get_leaderboard_app() -> gr.Blocks:
             bench_modalities,
         )
         update_tables(bench_scores, filtered_tasks, filtered_models, benchmark.name)
+
+
     return demo
 
 

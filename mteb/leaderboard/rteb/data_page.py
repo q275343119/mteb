@@ -37,7 +37,7 @@ def unit_change(x):
     return x
 
 
-def table_area(group_name, data_engine=None):
+def rteb_table_data(group_name, data_engine=None):
     """
     table_area
     :param group_name:
@@ -84,7 +84,7 @@ def table_area(group_name, data_engine=None):
     open_avg_list = list(set(dataset_list) - set(closed_list))
     df["Open average"] = df[open_avg_list].mean(axis=1).round(2)
     column_list.append("Open average")
-
+    df_detail = df[["model_name"] + dataset_list].rename(columns={"model_name": "Model Name"})
     df = df[COLUMNS + column_list].sort_values(by=avg_column, ascending=False)
 
     # rename avg column  name
@@ -124,13 +124,4 @@ def table_area(group_name, data_engine=None):
     df.rename(columns=rename_map, inplace=True)
     df["Number of Parameters"] = df["Number of Parameters"].apply(lambda x: unit_change(x))
     df = df.map(lambda x: "Unknown" if pd.isnull(x) else x)
-    return df[list(rename_map.values())]
-
-
-if __name__ == '__main__':
-    data_engine = DataEngine()
-    df = table_area("Overall", data_engine)
-    print(df)
-
-    df = table_area("Code", data_engine)
-    print(df)
+    return df[list(rename_map.values())], df_detail
