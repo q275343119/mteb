@@ -1,0 +1,16 @@
+name: Restart Hugging Face Space on Dev Update
+
+on:
+  push:
+    branches:
+      - dev  # 仅 dev 分支更新时触发
+
+jobs:
+  restart-space:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Restart Hugging Face Space
+        run: |
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.HF_TOKEN }}" \
+            "https://huggingface.co/api/spaces/SmileXing/leaderboard/restart?factory=true"
