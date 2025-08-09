@@ -3,8 +3,6 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-from mteb.leaderboard.rteb.data_engine import DataEngine
-from mteb.leaderboard.rteb.data_page import rteb_table_data
 
 default_column = ['Model Name', 'Overall Score', 'Open Average', 'Closed Average',
                   'Embd Dtype', 'Embd Dim', 'Number of Parameters', 'Context Length', 'Average', 'Model']
