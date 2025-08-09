@@ -13,6 +13,7 @@ from urllib.parse import urlencode
 import cachetools
 import gradio as gr
 import pandas as pd
+import plotly.graph_objects as go
 
 import mteb
 from mteb.abstasks.TaskMetadata import TASK_DOMAIN, TASK_TYPE
@@ -25,6 +26,7 @@ from mteb.leaderboard.benchmark_selector import (
 from mteb.leaderboard.figures import performance_size_plot, radar_chart
 from mteb.leaderboard.rteb.data_engine import DataEngine
 from mteb.leaderboard.rteb.data_page import rteb_table_data
+from mteb.leaderboard.rteb.retb_figures import rteb_performance_size_plot, rteb_radar_chart
 from mteb.leaderboard.table import create_tables
 from mteb.leaderboard.text_segments import ACKNOWLEDGEMENT, FAQ
 
@@ -241,13 +243,13 @@ def is_retrieval_benchmark(benchmark_name: str) -> bool:
     return benchmark_name in all_retrieval_benchmarks
 
 
-def get_retrieval_table(benchmark_name: str) -> tuple[gr.DataFrame, gr.DataFrame]:
+def get_retrieval_table(benchmark_name: str) -> tuple[gr.DataFrame, gr.DataFrame, pd.DataFrame, pd.DataFrame]:
     """根据选择的benchmark生成mock数据"""
     data_engine = DataEngine()
     group_name = benchmark_name.replace("RTEB", "").strip()[1:-1]
-    dt_summary, df_detail = rteb_table_data(group_name, data_engine)
+    df_summary, df_detail = rteb_table_data(group_name, data_engine)
     summary = gr.DataFrame(
-        value=dt_summary,
+        value=df_summary,
         visible=True,
         show_copy_button=True,
         show_fullscreen_button=True,
@@ -262,7 +264,24 @@ def get_retrieval_table(benchmark_name: str) -> tuple[gr.DataFrame, gr.DataFrame
         show_search="filter",
         pinned_columns=1
     )
-    return summary, detail
+    return summary, detail, df_summary, df_detail
+
+
+def get_performance_size_plot(benchmark_name: str, summary_table: pd.DataFrame,
+                              per_task_table: pd.DataFrame) -> go.Figure:
+    is_retrieval = is_retrieval_benchmark(benchmark_name)
+
+    if is_retrieval:
+        return rteb_performance_size_plot(summary_table, per_task_table)
+    return performance_size_plot(summary_table)
+
+
+def get_radar_chart(benchmark_name: str, summary_table: pd.DataFrame) -> go.Figure:
+    is_retrieval = is_retrieval_benchmark(benchmark_name)
+
+    if is_retrieval:
+        return rteb_radar_chart(summary_table)
+    return radar_chart(summary_table)
 
 
 def safe_get_benchmark(benchmark_name: str):
@@ -396,18 +415,6 @@ def get_leaderboard_app() -> gr.Blocks:
                         update_citation_link, inputs=[benchmark_select]
                     )  # noqa: F841
 
-            with gr.Column(scale=2) as performance_plots:
-                with gr.Tab("Performance per Model Size"):
-                    plot = gr.Plot(performance_size_plot, inputs=[summary_table])  # noqa: F841
-                    gr.Markdown(
-                        "*We only display models that have been run on all tasks in the benchmark*"
-                    )
-                with gr.Tab("Performance per Task Type (Radar Chart)"):
-                    radar_plot = gr.Plot(radar_chart, inputs=[summary_table])  # noqa: F841
-                    gr.Markdown(
-                        "*We only display models that have been run on all task types in the benchmark*"
-                    )
-
         with gr.Accordion("Customize this Benchmark", open=False):
             with gr.Column():
                 with gr.Row():
@@ -506,6 +513,18 @@ def get_leaderboard_app() -> gr.Blocks:
         with gr.Tab("Task information"):
             task_info_table = gr.DataFrame(update_task_info, inputs=[task_select])  # noqa: F841
 
+        with gr.Tab("Performance per Model Size"):
+            plot = gr.Plot(get_performance_size_plot,
+                           inputs=[benchmark_select, summary_table, per_task_table])  # noqa: F841
+            gr.Markdown(
+                "*We only display models that have been run on all tasks in the benchmark*"
+            )
+        with gr.Tab("Performance per Task Type (Radar Chart)"):
+            radar_plot = gr.Plot(get_radar_chart, inputs=[benchmark_select, summary_table])  # noqa: F841
+            gr.Markdown(
+                "*We only display models that have been run on all task types in the benchmark*"
+            )
+
         # 下部分：Acknowledgment
         gr.Markdown(ACKNOWLEDGEMENT, elem_id="ack_markdown")
 
@@ -513,22 +532,29 @@ def get_leaderboard_app() -> gr.Blocks:
         demo.load(set_benchmark_on_load, inputs=[], outputs=[benchmark_select])
 
         # 根据benchmark类型切换显示内容
-        def update_content_visibility(benchmark_name):
+        def update_content_visibility(benchmark_name, summary_table, per_task_table):
             is_retrieval = is_retrieval_benchmark(benchmark_name)
 
             if is_retrieval:
-                summary, per_task = get_retrieval_table(benchmark_name)
+                summary, per_task, df_summary, df_detail = get_retrieval_table(benchmark_name)
 
-                return gr.update(visible=False), summary, per_task
+                return summary, per_task
             else:
-                # 选择General Purpose组时，显示中间内容，隐藏DataFrame
-                return gr.update(visible=True), gr.update(visible=True), gr.update(visible=True)
+
+                return gr.update(value=summary_table), gr.update(value=per_task_table)
 
         benchmark_select.change(
             update_content_visibility,
-            inputs=[benchmark_select],
-            outputs=[performance_plots, summary_table, per_task_table],
-        )
+            inputs=[benchmark_select, summary_table, per_task_table],
+            outputs=[summary_table, per_task_table],
+        ).then(
+            get_performance_size_plot,
+            inputs=[benchmark_select, summary_table, per_task_table],
+            outputs=[plot]
+        ).then(
+            get_radar_chart,
+            inputs=[benchmark_select, summary_table],
+            outputs=[radar_plot])
 
         @cachetools.cached(
             cache={},
@@ -873,7 +899,7 @@ def get_leaderboard_app() -> gr.Blocks:
             start_time = time.time()
             # 特殊处理Retrieval组的benchmark
             if is_retrieval_benchmark(benchmark_name):
-                summary, per_task = get_retrieval_table(benchmark_name)
+                summary, per_task, _, _ = get_retrieval_table(benchmark_name)
                 return summary, per_task
 
             tasks = set(tasks)
