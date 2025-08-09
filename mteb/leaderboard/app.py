@@ -71,10 +71,10 @@ def download_table(table: pd.DataFrame) -> str:
     return file.name
 
 
-def update_citation(benchmark_name: str) -> str:
+def update_citation_link(benchmark_name: str, request: gr.Request) -> str:
     # 特殊处理Retrieval组的benchmark
     if is_retrieval_benchmark(benchmark_name):
-        return ""
+        citation = ""
 
     benchmark = safe_get_benchmark(benchmark_name)
     if benchmark is None:
@@ -83,7 +83,9 @@ def update_citation(benchmark_name: str) -> str:
         citation = f"```bibtex\n{benchmark.citation}\n```"
     else:
         citation = ""
-    return citation
+
+    link = produce_benchmark_link(benchmark_name, request)
+    return citation + "\n" + link
 
 
 def update_description(
@@ -207,6 +209,7 @@ def filter_models(
         models_to_keep.add(model_meta.name)
     return list(models_to_keep)
 
+
 def get_retrieval_benchmarks():
     # 静态定义的Retrieval benchmark
     static_retrieval_benchmarks = ["RTEB (Overall)"]
@@ -228,6 +231,7 @@ def get_retrieval_benchmarks():
 
     return all_retrieval_benchmarks
 
+
 def is_retrieval_benchmark(benchmark_name: str) -> bool:
     """检查是否为Retrieval组的benchmark"""
 
@@ -237,20 +241,19 @@ def is_retrieval_benchmark(benchmark_name: str) -> bool:
     return benchmark_name in all_retrieval_benchmarks
 
 
-
 def get_retrieval_table(benchmark_name: str) -> tuple[gr.DataFrame, gr.DataFrame]:
     """根据选择的benchmark生成mock数据"""
     data_engine = DataEngine()
     group_name = benchmark_name.replace("RTEB", "").strip()[1:-1]
-    dt_summary,df_detail = rteb_table_data(group_name, data_engine)
+    dt_summary, df_detail = rteb_table_data(group_name, data_engine)
     summary = gr.DataFrame(
-            value=dt_summary,
-            visible=True,
-            show_copy_button=True,
-            show_fullscreen_button=True,
-            show_search="filter",
-            pinned_columns=1
-        )
+        value=dt_summary,
+        visible=True,
+        show_copy_button=True,
+        show_fullscreen_button=True,
+        show_search="filter",
+        pinned_columns=1
+    )
     detail = gr.DataFrame(
         value=df_detail,
         visible=True,
@@ -259,7 +262,7 @@ def get_retrieval_table(benchmark_name: str) -> tuple[gr.DataFrame, gr.DataFrame
         show_search="filter",
         pinned_columns=1
     )
-    return summary,detail
+    return summary, detail
 
 
 def safe_get_benchmark(benchmark_name: str):
@@ -388,12 +391,11 @@ def get_leaderboard_app() -> gr.Blocks:
                         domain_select,
                     ],
                 )
-                with gr.Accordion("Cite this benchmark:", open=False):
-                    citation = gr.Markdown(
-                        update_citation, inputs=[benchmark_select]
+                with gr.Accordion("Cite or share this benchmark:", open=False):
+                    citation_link = gr.Markdown(
+                        update_citation_link, inputs=[benchmark_select]
                     )  # noqa: F841
-                with gr.Accordion("Share this benchmark:", open=False):
-                    gr.Markdown(produce_benchmark_link, inputs=[benchmark_select])
+
             with gr.Column(scale=2) as performance_plots:
                 with gr.Tab("Performance per Model Size"):
                     plot = gr.Plot(performance_size_plot, inputs=[summary_table])  # noqa: F841
@@ -504,7 +506,6 @@ def get_leaderboard_app() -> gr.Blocks:
         with gr.Tab("Task information"):
             task_info_table = gr.DataFrame(update_task_info, inputs=[task_select])  # noqa: F841
 
-
         # 下部分：Acknowledgment
         gr.Markdown(ACKNOWLEDGEMENT, elem_id="ack_markdown")
 
@@ -518,15 +519,15 @@ def get_leaderboard_app() -> gr.Blocks:
             if is_retrieval:
                 summary, per_task = get_retrieval_table(benchmark_name)
 
-                return gr.update(visible=False),summary, per_task
+                return gr.update(visible=False), summary, per_task
             else:
                 # 选择General Purpose组时，显示中间内容，隐藏DataFrame
-                return gr.update(visible=True),gr.update(visible=True),gr.update(visible=True)
+                return gr.update(visible=True), gr.update(visible=True), gr.update(visible=True)
 
         benchmark_select.change(
             update_content_visibility,
             inputs=[benchmark_select],
-            outputs=[performance_plots,summary_table, per_task_table],
+            outputs=[performance_plots, summary_table, per_task_table],
         )
 
         @cachetools.cached(
@@ -869,7 +870,6 @@ def get_leaderboard_app() -> gr.Blocks:
                 benchmark_name: str,
         ):
 
-
             start_time = time.time()
             # 特殊处理Retrieval组的benchmark
             if is_retrieval_benchmark(benchmark_name):
@@ -945,7 +945,6 @@ def get_leaderboard_app() -> gr.Blocks:
             bench_modalities,
         )
         update_tables(bench_scores, filtered_tasks, filtered_models, benchmark.name)
-
 
     return demo
 
