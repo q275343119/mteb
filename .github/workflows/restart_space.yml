@@ -12,5 +12,5 @@ jobs:
       - name: Restart Hugging Face Space
         run: |
           curl -X POST \
-            -H "Authorization: Bearer ${{ HF_TOKEN.HF_TOKEN }}" \
+            -H "Authorization: Bearer ${{ secrets.HF_TOKEN }}" \
             "https://huggingface.co/api/spaces/SmileXing/leaderboard/restart?factory=true"
