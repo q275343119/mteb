@@ -26,7 +26,8 @@ from mteb.leaderboard.benchmark_selector import (
 from mteb.leaderboard.figures import performance_size_plot, radar_chart
 from mteb.leaderboard.rteb.data_engine import DataEngine
 from mteb.leaderboard.rteb.data_page import rteb_table_data
-from mteb.leaderboard.rteb.retb_figures import rteb_performance_size_plot, rteb_radar_chart
+from mteb.leaderboard.rteb.rteb_figures import rteb_performance_size_plot, rteb_radar_chart
+from mteb.leaderboard.rteb.rteb_table import rteb_apply_styling
 from mteb.leaderboard.table import create_tables
 from mteb.leaderboard.text_segments import ACKNOWLEDGEMENT, FAQ
 
@@ -248,22 +249,10 @@ def get_retrieval_table(benchmark_name: str) -> tuple[gr.DataFrame, gr.DataFrame
     data_engine = DataEngine()
     group_name = benchmark_name.replace("RTEB", "").strip()[1:-1]
     df_summary, df_detail = rteb_table_data(group_name, data_engine)
-    summary = gr.DataFrame(
-        value=df_summary,
-        visible=True,
-        show_copy_button=True,
-        show_fullscreen_button=True,
-        show_search="filter",
-        pinned_columns=1
-    )
-    detail = gr.DataFrame(
-        value=df_detail,
-        visible=True,
-        show_copy_button=True,
-        show_fullscreen_button=True,
-        show_search="filter",
-        pinned_columns=1
-    )
+
+    summary,detail = rteb_apply_styling(df_summary, df_detail)
+
+
     return summary, detail, df_summary, df_detail
 
 
