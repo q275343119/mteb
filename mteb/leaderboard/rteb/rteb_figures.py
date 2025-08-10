@@ -94,7 +94,7 @@ def rteb_performance_size_plot(df_summary: pd.DataFrame, df_detail: pd.DataFrame
     df_performance = pd.merge(df_performance, df_model, on="Model Name", how="left")
     df_performance["Number of Parameters"] = df_performance["Number of Parameters"].map(parse_n_params)
     df_performance["Model"] = df_performance["Model Name"]
-    df_performance["model_text"] = df_performance["Model"]
+    df_performance["model_text"] = ""
     df_performance["Embedding Dimensions"] = df_performance["Embd Dim"]
     df_performance["Max Tokens"] = df_performance["Context Length"]
     df_performance["Model"] = df_performance["Model"]

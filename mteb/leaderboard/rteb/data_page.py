@@ -86,7 +86,7 @@ def rteb_table_data(group_name, data_engine=None):
     column_list.append("Open average")
     df_detail = df[["model_name"] + dataset_list].rename(columns={"model_name": "Model Name"})
     df = df[COLUMNS + column_list].sort_values(by=avg_column, ascending=False)
-
+    df_reference = df[["model_name","reference"]].rename(columns={"model_name": "Model Name"})
     # rename avg column  name
     if group_name != "Overall":
         new_column = avg_column.replace(group_name.capitalize(), "").strip()
@@ -124,4 +124,5 @@ def rteb_table_data(group_name, data_engine=None):
     df.rename(columns=rename_map, inplace=True)
     df["Number of Parameters"] = df["Number of Parameters"].apply(lambda x: unit_change(x))
     df = df.map(lambda x: "Unknown" if pd.isnull(x) else x)
-    return df[list(rename_map.values())], df_detail
+
+    return df[list(rename_map.values())], df_detail,df_reference

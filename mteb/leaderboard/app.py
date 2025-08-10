@@ -76,8 +76,10 @@ def download_table(table: pd.DataFrame) -> str:
 
 def update_citation_link(benchmark_name: str, request: gr.Request) -> str:
     # 特殊处理Retrieval组的benchmark
+    link = produce_benchmark_link(benchmark_name, request)
     if is_retrieval_benchmark(benchmark_name):
         citation = ""
+        return citation + "\n" + link
 
     benchmark = safe_get_benchmark(benchmark_name)
     if benchmark is None:
@@ -87,7 +89,7 @@ def update_citation_link(benchmark_name: str, request: gr.Request) -> str:
     else:
         citation = ""
 
-    link = produce_benchmark_link(benchmark_name, request)
+
     return citation + "\n" + link
 
 
@@ -248,9 +250,9 @@ def get_retrieval_table(benchmark_name: str) -> tuple[gr.DataFrame, gr.DataFrame
     """根据选择的benchmark生成mock数据"""
     data_engine = DataEngine()
     group_name = benchmark_name.replace("RTEB", "").strip()[1:-1]
-    df_summary, df_detail = rteb_table_data(group_name, data_engine)
+    df_summary, df_detail,df_reference = rteb_table_data(group_name, data_engine)
 
-    summary,detail = rteb_apply_styling(df_summary, df_detail)
+    summary,detail = rteb_apply_styling(df_summary, df_detail,df_reference)
 
 
     return summary, detail, df_summary, df_detail

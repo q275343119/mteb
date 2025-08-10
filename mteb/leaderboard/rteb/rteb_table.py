@@ -47,6 +47,7 @@ def get_column_widths(df: pd.DataFrame) -> list[str]:
 def rteb_apply_styling(
         joint_table: pd.DataFrame,
         per_task: pd.DataFrame,
+        df_reference: pd.DataFrame
 
 ) -> tuple[gr.DataFrame, gr.DataFrame]:
     excluded_columns = ['Model Name', 'Overall Score', 'Open Average', 'Closed Average',
@@ -56,13 +57,24 @@ def rteb_apply_styling(
     ]
 
     score_columns = gradient_columns
+    # model name to link
+    joint_table = pd.merge(joint_table,df_reference,on='Model Name',how='left')
+    per_task = pd.merge(per_task,df_reference,on='Model Name',how='left')
+    joint_table["Model Name"] = "[" + joint_table["Model Name"] + "](" + joint_table["reference"] + ")"
+
+    joint_table.drop(columns=["reference"], inplace=True)
+
+    per_task["Model Name"] = "[" + per_task["Model Name"] + "](" + per_task["reference"] + ")"
+    per_task.drop(columns=["reference"], inplace=True)
+
 
     light_green_cmap = create_light_green_cmap()
     numeric_data = joint_table.copy()
 
     joint_table_style = joint_table.style.format(
         {
-            **dict.fromkeys(score_columns, "{:.2f}")
+            **dict.fromkeys(score_columns + ['Overall Score', 'Open Average', 'Closed Average'], "{:.2f}"),
+
         },
         na_rep="",
     )
@@ -106,15 +118,26 @@ def rteb_apply_styling(
     #             subset=pd.IndexSlice[mask, col],
     #             gmap=per_task[col].loc[mask],
     #         )
-    column_widths = get_column_widths(joint_table_style.data)
-    column_widths[0] = "100px"
-    column_widths[1] = "250px"
+    joint_table_column_widths = get_column_widths(joint_table_style.data)
+    joint_table_column_widths[0] = "300px"
+
+    per_task_column_widths = get_column_widths(per_task_style.data)
+    per_task_column_widths[0] = "300px"
+    # column_widths[1] = "250px"
+    joint_table_dtypes = list(map(lambda x: 'number' if pd.api.types.is_numeric_dtype(x) else 'str',joint_table.dtypes))
+    per_task_dtypes = list(map(lambda x: 'number' if pd.api.types.is_numeric_dtype(x) else 'str',per_task.dtypes))
+
+    joint_table_dtypes[0] = 'markdown'
+    per_task_dtypes[0] = 'markdown'
+
+
     return (
         gr.DataFrame(
             joint_table_style,
+            datatype=joint_table_dtypes,
             interactive=False,
             pinned_columns=1,
-            column_widths=column_widths,
+            column_widths=joint_table_column_widths,
             wrap=True,
             show_fullscreen_button=True,
             show_copy_button=True,
@@ -122,8 +145,10 @@ def rteb_apply_styling(
         ),
         gr.DataFrame(
             per_task_style,
+            datatype=per_task_dtypes,
             interactive=False,
             pinned_columns=1,
+            column_widths=per_task_column_widths,
             show_fullscreen_button=True,
             show_copy_button=True,
             show_search="filter",
