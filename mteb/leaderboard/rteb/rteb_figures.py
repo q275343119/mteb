@@ -34,6 +34,13 @@ def process_max_tokens(x):
         return "Infinite"
     return str(int(x))
 
+def parse_model_name(name: str) -> str:
+    if name is None:
+        return ""
+    if "]" not in name:
+        return name
+    name, _ = name.split("]")
+    return name[1:]
 
 def add_size_guide(fig: go.Figure):
     xpos = [2 * 1e6] * 4
@@ -103,6 +110,8 @@ def rteb_performance_size_plot(df_summary: pd.DataFrame, df_detail: pd.DataFrame
     df = df_performance.dropna(
         subset=["Mean (Task)", "Number of Parameters", "Embedding Dimensions"]
     )
+    df["Model"] = df["Model"].map(parse_model_name)
+
     # if not len(df.index):
     #     return go.Figure()
 
@@ -173,6 +182,7 @@ def rteb_performance_size_plot(df_summary: pd.DataFrame, df_detail: pd.DataFrame
 @failsafe_plot
 def rteb_radar_chart(df: pd.DataFrame) -> go.Figure:
     df = df.copy().rename(columns={"Model Name": "Model"}) if "Model" not in df.columns else df.copy()
+    df["Model"] = df["Model"].map(parse_model_name)
 
     # Remove whitespace
     task_type_columns = [
