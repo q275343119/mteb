@@ -7,6 +7,7 @@ import io
 
 import pandas as pd
 
+from mteb.leaderboard.rteb.constant import LEADERBOARD_DESCRIPTION_MAP
 from mteb.leaderboard.rteb.data_engine import DataEngine
 
 COLUMNS = ['model_name',
@@ -126,3 +127,7 @@ def rteb_table_data(group_name, data_engine=None):
     df = df.map(lambda x: "Unknown" if pd.isnull(x) else x)
 
     return df[list(rename_map.values())], df_detail,df_reference
+
+def get_rteb_description(group_name:str)->str:
+    key = "Text Leaderboard" if group_name == 'Overall' else group_name.capitalize()
+    return LEADERBOARD_DESCRIPTION_MAP.get(key,"")

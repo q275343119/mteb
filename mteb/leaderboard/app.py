@@ -25,7 +25,7 @@ from mteb.leaderboard.benchmark_selector import (
 )
 from mteb.leaderboard.figures import performance_size_plot, radar_chart
 from mteb.leaderboard.rteb.data_engine import DataEngine
-from mteb.leaderboard.rteb.data_page import rteb_table_data
+from mteb.leaderboard.rteb.data_page import rteb_table_data, get_rteb_description
 from mteb.leaderboard.rteb.rteb_figures import (
     rteb_performance_size_plot,
     rteb_radar_chart,
@@ -100,13 +100,8 @@ def update_description(
 ) -> str:
     # 特殊处理Retrieval组的benchmark
     if is_retrieval_benchmark(benchmark_name):
-        # TODO: 动态获取
-        description = "Retrieval benchmark"
-        description += f" - **Number of languages**: {666}\n"
-        description += f" - **Number of tasks**: {666}\n"
-        description += f" - **Number of task types**: {666}\n"
-        description += f" - **Number of domains**: {666}\n"
-        return description
+        group_name = benchmark_name.replace("RTEB", "").strip()[1:-1]
+        return get_rteb_description(group_name)
 
     benchmark = safe_get_benchmark(benchmark_name)
     if benchmark is None:
