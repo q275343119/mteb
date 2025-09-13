@@ -13,4 +13,4 @@ jobs:
         run: |
           curl -X POST \
             "https://huggingface.co/api/spaces/mteb/leaderboard_dev/restart?factory=true" \
-            -H "Authorization: Bearer ${{ secrets.HF_TOKEN }}"
+            -H "Authorization: Bearer ${{ secrets.HF_TOKEN_DEV }}"
